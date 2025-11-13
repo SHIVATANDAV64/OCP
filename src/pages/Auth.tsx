@@ -71,24 +71,34 @@ export default function Auth() {
 
     try {
       // Create account
-      const user = await authService.createAccount(signupData.email, signupData.password, signupData.name);
+      await authService.createAccount(signupData.email, signupData.password, signupData.name);
       toast.success('Account created successfully!');
 
-      // Create user profile in database
+      // Create a session BEFORE creating profile so permissions apply
+      await authLogin(signupData.email, signupData.password);
+      await refreshUser();
+
+      // Ensure user profile exists (with correct role)
       try {
-        await dbService.createDocument(COLLECTIONS.USERS, {
-          userId: user.$id,
-          name: signupData.name,
-          email: signupData.email,
-          role: signupData.role,
-          enrolledCourses: [],
-        });
+        const current = await authService.getCurrentUser();
+        if (current) {
+          const existing = await dbService.listDocuments(COLLECTIONS.USERS, [
+            Query.equal('userId', current.$id),
+          ]);
+          if (existing.documents.length === 0) {
+            await dbService.createDocument(COLLECTIONS.USERS, {
+              userId: current.$id,
+              name: signupData.name,
+              email: signupData.email,
+              role: signupData.role,
+              enrolledCourses: [],
+            });
+          }
+        }
       } catch (dbError) {
         console.log('User profile creation skipped:', dbError);
       }
 
-      // Auto login after signup
-      await authLogin(signupData.email, signupData.password);
       toast.success('Welcome to LearnHub!');
       navigate('/dashboard');
     } catch (err: any) {

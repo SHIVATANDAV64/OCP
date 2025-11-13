@@ -49,10 +49,15 @@ export default function Navbar() {
             {user ? (
               <>
                 <NotificationBell />
-                <div className="flex items-center space-x-2 text-gray-700">
+                <Button
+                  onClick={() => navigate('/profile')}
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center space-x-2 text-gray-700"
+                >
                   <User className="h-5 w-5" />
                   <span className="text-sm">{user.name}</span>
-                </div>
+                </Button>
                 <Button onClick={handleLogout} variant="outline" size="sm" className="border-gray-300">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
@@ -94,6 +99,9 @@ export default function Navbar() {
               {user ? (
                 <>
                   <div className="text-gray-700 text-sm">Logged in as {user.name}</div>
+                  <Button onClick={() => { setIsOpen(false); navigate('/profile'); }} variant="outline" className="w-full border-gray-300">
+                    Profile
+                  </Button>
                   <Button onClick={handleLogout} variant="outline" className="w-full border-gray-300">
                     Logout
                   </Button>

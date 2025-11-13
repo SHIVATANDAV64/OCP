@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Mail, Lock, Award, BookOpen, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { storage, BUCKETS } from '@/lib/appwrite';
+import { storage, BUCKETS, authService } from '@/lib/appwrite';
 import { certificateService } from '@/services/certificateService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
