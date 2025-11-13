@@ -92,16 +92,26 @@ export const stripeService = {
       // Parse the response from the function
       let responseData = result.data.responseBody;
       
-      // Handle if responseBody is already a string that needs parsing
+      console.log('Raw response from verify payment:', responseData);
+      
+      // Handle if responseBody is a string that needs parsing
       if (typeof responseData === 'string') {
         try {
           responseData = JSON.parse(responseData);
         } catch (parseError) {
           console.error('Failed to parse verification response:', responseData);
+          console.error('Parse error details:', parseError);
           return false;
         }
       }
       
+      // Handle if responseData is undefined or null
+      if (!responseData) {
+        console.error('Response data is empty or undefined');
+        return false;
+      }
+      
+      console.log('Parsed response data:', responseData);
       return responseData.verified === true;
     } catch (error) {
       console.error('Error verifying payment:', error);

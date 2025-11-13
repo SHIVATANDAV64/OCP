@@ -13,11 +13,22 @@ async function exec(functionId: string, payload: Record<string, unknown>): Promi
   }
 
   try {
-    // Appwrite Functions createExecution expects the functionId and optional data
-    const res = await functions.createExecution(functionId, JSON.stringify(payload));
+    // Appwrite SDK's createExecution signature: 
+    // createExecution(functionId, data?, async?, path?, method?, headers?)
+    // Specify 'post' as the method to allow request body
+    const res = await functions.createExecution(
+      functionId,
+      JSON.stringify(payload),
+      false, // async = false (wait for response)
+      undefined, // path
+      'post' // method = POST to allow request body
+    );
+    console.log('Function execution response:', res);
     return { success: true, data: res }; 
-  } catch (err: any) {
-    return { success: false, error: err?.message || String(err) };
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error('Function execution error:', errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
