@@ -15,13 +15,13 @@ async function exec(functionId: string, payload: Record<string, unknown>): Promi
   try {
     // Appwrite SDK's createExecution signature: 
     // createExecution(functionId, data?, async?, path?, method?, headers?)
-    // Specify 'post' as the method to allow request body
+    // Specify 'POST' (uppercase) as the method to allow request body
     const res = await functions.createExecution(
       functionId,
       JSON.stringify(payload),
       false, // async = false (wait for response)
       undefined, // path
-      'post' // method = POST to allow request body
+      'POST' // method = POST (uppercase) to allow request body
     );
     console.log('Function execution response:', res);
     return { success: true, data: res }; 
