@@ -1,0 +1,10 @@
+{
+  "name": "ocp-mgx-functions",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [],
+  "scripts": {
+    "install-all": "npm --prefix ./createCheckoutSession install && npm --prefix ./verifyPayment install && npm --prefix ./enrollCourse install && npm --prefix ./submitQuiz install && npm --prefix ./updateProgress install",
+    "bootstrap": "npm run install-all"
+  }
+}
