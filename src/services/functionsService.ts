@@ -20,7 +20,7 @@ async function exec(functionId: string, payload: Record<string, unknown>): Promi
       functionId,
       JSON.stringify(payload),
       false, // async = false (wait for response)
-      '', // path = empty string
+      '/', // path = root path to satisfy SDK validation
       'POST' // method = POST (uppercase)
     );
     console.log('Function execution response:', res);
