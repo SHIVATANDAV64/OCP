@@ -109,21 +109,20 @@ export const stripeService = {
     }
   },
 
-  async redirectToCheckout(sessionId: string): Promise<void> {
+  async redirectToCheckout(sessionId: string, url: string): Promise<void> {
     if (!paymentsEnabled()) {
       console.log('Redirecting to mock checkout');
       window.location.href = '/payment-success?session_id=' + sessionId;
       return;
     }
 
-    const stripe = await getStripe();
-    if (!stripe) {
-      throw new Error('Stripe failed to load');
+    // NEW METHOD: Use the URL directly instead of deprecated redirectToCheckout
+    // The URL from createCheckoutSession already points to Stripe checkout
+    if (!url) {
+      throw new Error('No checkout URL provided');
     }
 
-    const { error } = await stripe.redirectToCheckout({ sessionId });
-    if (error) {
-      throw error;
-    }
+    // Redirect to Stripe checkout URL
+    window.location.href = url;
   },
 };

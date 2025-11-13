@@ -28,8 +28,8 @@ export default function PaymentCheckout({ courseId, courseTitle, price, onSucces
       }
 
       if (paymentsEnabled()) {
-        // Redirect to Stripe checkout
-        await stripeService.redirectToCheckout(session.sessionId);
+        // Redirect to Stripe checkout using the URL (new method)
+        await stripeService.redirectToCheckout(session.sessionId, session.url);
       } else {
         // Mock checkout in development
         console.log('Mock checkout session created:', session);
