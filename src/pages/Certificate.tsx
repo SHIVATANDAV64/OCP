@@ -13,9 +13,9 @@ interface Certificate {
   id: string;
   userId: string;
   courseId: string;
-  courseTitle: string;
-  studentName: string;
-  completionDate: string;
+  courseName: string;
+  userName: string;
+  completedAt: string;
   instructorName: string;
   certificateNumber: string;
 }
@@ -46,9 +46,9 @@ export default function Certificate() {
         id: cert.$id,
         userId: cert.userId,
         courseId: cert.courseId,
-        courseTitle: cert.courseName,
-        studentName: cert.userName,
-        completionDate: new Date(cert.completedAt).toLocaleDateString('en-US', {
+        courseName: cert.courseName,
+        userName: cert.userName,
+        completedAt: new Date(cert.completedAt).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
@@ -95,7 +95,7 @@ export default function Certificate() {
   const handleShare = async () => {
     if (!certificate) return;
 
-    const shareText = `I just completed "${certificate.courseTitle}"! 🎓`;
+    const shareText = `I just completed "${certificate.courseName}"! 🎓`;
     const shareUrl = window.location.href;
 
     if (navigator.share) {
@@ -184,12 +184,12 @@ export default function Certificate() {
             {/* Student Name */}
             <div className="text-center my-8">
               <h2 className="text-6xl font-serif font-bold text-gray-900 mb-4 border-b-2 border-gray-300 pb-4">
-                {certificate.studentName}
+                {certificate.userName}
               </h2>
               <p className="text-xl text-gray-600 mb-8">has successfully completed the course</p>
-              <h3 className="text-4xl font-semibold text-gray-800 mb-8">{certificate.courseTitle}</h3>
+              <h3 className="text-4xl font-semibold text-gray-800 mb-8">{certificate.courseName}</h3>
               <p className="text-lg text-gray-600 mb-4">
-                Completed on <span className="font-semibold">{certificate.completionDate}</span>
+                Completed on <span className="font-semibold">{certificate.completedAt}</span>
               </p>
             </div>
 

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
@@ -13,59 +12,120 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ url, onProgress, onComplete, initialProgress = 0 }: VideoPlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
   const [played, setPlayed] = useState(initialProgress);
   const [duration, setDuration] = useState(0);
-  const [playerRef, setPlayerRef] = useState<ReactPlayer | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = muted;
+    }
+  }, [muted]);
 
   useEffect(() => {
     // Auto-save progress every 10 seconds
     const interval = setInterval(() => {
-      if (playing && onProgress) {
-        onProgress(played);
+      if (playing && onProgress && videoRef.current) {
+        onProgress(videoRef.current.currentTime / videoRef.current.duration);
       }
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [playing, played, onProgress]);
+  }, [playing, onProgress]);
 
-  const handleProgress = (state: { played: number; playedSeconds: number; loaded: number; loadedSeconds: number }) => {
-    setPlayed(state.played);
-    
-    // Check if video is near completion (95%)
-    if (state.played >= 0.95 && onComplete) {
-      onComplete();
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (playing) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(err => {
+          console.error('Play error:', err);
+        });
+      }
+      setPlaying(!playing);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const newPlayed = videoRef.current.currentTime / videoRef.current.duration;
+      setPlayed(newPlayed);
+      
+      if (onProgress) {
+        onProgress(newPlayed);
+      }
+
+      // Check if video is near completion (95%)
+      if (newPlayed >= 0.95 && onComplete) {
+        onComplete();
+      }
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+      console.log('Video loaded, duration:', videoRef.current.duration);
     }
   };
 
   const handleSeek = (value: number[]) => {
     const newPlayed = value[0] / 100;
-    setPlayed(newPlayed);
-    playerRef?.seekTo(newPlayed);
-  };
-
-  const handlePlayPause = () => {
-    setPlaying(!playing);
+    if (videoRef.current) {
+      videoRef.current.currentTime = newPlayed * videoRef.current.duration;
+      setPlayed(newPlayed);
+    }
   };
 
   const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0] / 100);
-    setMuted(value[0] === 0);
+    const newVolume = value[0] / 100;
+    setVolume(newVolume);
+    setMuted(newVolume === 0);
   };
 
   const handleMuteToggle = () => {
     setMuted(!muted);
   };
 
+  const handleError = (e: Event) => {
+    const target = e.target as HTMLVideoElement;
+    console.error('Video error:', target.error);
+    let errorMsg = 'Failed to load video';
+    if (target.error) {
+      switch (target.error.code) {
+        case target.error.MEDIA_ERR_ABORTED:
+          errorMsg = 'Video loading was aborted';
+          break;
+        case target.error.MEDIA_ERR_NETWORK:
+          errorMsg = 'Network error loading video';
+          break;
+        case target.error.MEDIA_ERR_DECODE:
+          errorMsg = 'Error decoding video';
+          break;
+        case target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          errorMsg = 'Video format not supported';
+          break;
+      }
+    }
+    setError(errorMsg);
+  };
+
   const handleFullscreen = () => {
-    const playerElement = document.querySelector('.react-player');
-    if (playerElement) {
+    if (videoRef.current) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else {
-        playerElement.requestFullscreen();
+        videoRef.current.requestFullscreen();
       }
     }
   };
@@ -79,27 +139,32 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
   return (
     <Card className="overflow-hidden bg-black">
       <div className="relative aspect-video">
-        <ReactPlayer
-          ref={(ref) => setPlayerRef(ref)}
-          className="react-player"
-          url={url}
-          playing={playing}
-          volume={volume}
-          muted={muted}
-          width="100%"
-          height="100%"
-          onProgress={handleProgress}
-          onDuration={setDuration}
-          onEnded={() => {
-            setPlaying(false);
-            if (onComplete) onComplete();
-          }}
-          config={{
-            youtube: {
-              playerVars: { showinfo: 1 }
-            }
-          }}
-        />
+        {error ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-center">
+              <p className="text-white mb-4">{error}</p>
+              <p className="text-gray-400 text-sm break-all px-4">URL: {url}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <video
+              ref={videoRef}
+              className="w-full h-full"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onEnded={() => {
+                setPlaying(false);
+                if (onComplete) onComplete();
+              }}
+              onError={handleError}
+              crossOrigin="anonymous"
+            >
+              <source src={url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </>
+        )}
         
         {/* Custom Controls Overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">

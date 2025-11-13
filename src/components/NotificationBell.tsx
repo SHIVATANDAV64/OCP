@@ -41,17 +41,21 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = async (notification: Notification) => {
-    await notificationService.markAsRead(notification.id);
-    setUnreadCount(Math.max(0, unreadCount - 1));
+    try {
+      await notificationService.markAsRead(notification.$id);
+      setUnreadCount(Math.max(0, unreadCount - 1));
 
-    // Navigate based on notification type
-    if (notification.type === 'certificate' && notification.metadata?.certificateId) {
-      navigate(`/certificate/${notification.metadata.certificateId}`);
-    } else if (notification.type === 'enrollment') {
-      navigate('/dashboard');
+      // Navigate based on notification actionUrl
+      if (notification.actionUrl) {
+        navigate(notification.actionUrl);
+      } else if (notification.type === 'enrollment') {
+        navigate('/dashboard');
+      }
+
+      setOpen(false);
+    } catch (error) {
+      console.error('Error handling notification click:', error);
     }
-
-    setOpen(false);
   };
 
   const handleMarkAllRead = async () => {
@@ -99,7 +103,7 @@ export default function NotificationBell() {
         ) : (
           notifications.slice(0, 10).map((notification) => (
             <DropdownMenuItem
-              key={notification.id}
+              key={notification.$id}
               onClick={() => handleNotificationClick(notification)}
               className={`px-4 py-3 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
             >

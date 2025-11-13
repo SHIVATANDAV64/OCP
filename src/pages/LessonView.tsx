@@ -38,7 +38,7 @@ export default function LessonView() {
 
   useEffect(() => {
     if (lessonId && lessons.length > 0) {
-      const index = lessons.findIndex((l) => l.id === lessonId);
+      const index = lessons.findIndex((l) => (l.id || l.$id) === lessonId);
       if (index !== -1) {
         setCurrentLessonIndex(index);
       }
@@ -51,7 +51,14 @@ export default function LessonView() {
     try {
       // Load from Appwrite
       const response = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', courseId)]);
-      setLessons(response.documents);
+      console.log('Raw lessons from Appwrite:', response.documents);
+      const lessonsWithIds = response.documents.map((doc: any) => ({
+        ...doc,
+        id: doc.id || doc.$id,
+      }));
+      console.log('Mapped lessons:', lessonsWithIds);
+      console.log('First lesson videoUrl:', lessonsWithIds[0]?.videoUrl);
+      setLessons(lessonsWithIds);
     } catch (error) {
       console.error('Error loading lessons:', error);
       toast.error('Failed to load lessons');
@@ -73,7 +80,7 @@ export default function LessonView() {
   };
 
   const checkCourseCompletion = async () => {
-    if (!courseId) return;
+    if (!courseId || !user) return;
 
     // Check if all lessons are completed
     const allLessonsCompleted = lessons.every(lesson => 
@@ -86,22 +93,26 @@ export default function LessonView() {
     if (allLessonsCompleted && quizCompleted) {
       try {
         // Check if certificate already exists
-        const hasCert = await certificateService.hasCertificate(user?.$id || '', courseId);
+        const hasCert = await certificateService.hasCertificate(user.$id, courseId);
         
         if (!hasCert) {
+          // Fetch course data
+          const course = await dbService.getDocument(COLLECTIONS.COURSES, courseId);
+          
           // Generate certificate
           const certificate = await certificateService.generateCertificate(
-            user?.$id || '',
+            user.$id,
             courseId,
-            user?.name || 'Student'
+            (course as any).title || 'Course',
+            user.name || 'Student',
+            (course as any).instructorName || 'Instructor'
           );
 
           // Create notification
-          const course = await dbService.getDocument(COLLECTIONS.COURSES, courseId);
-          await notificationService.createCourseCompletionNotification(
-            user?.$id || '',
-            courseId,
-            (course as any).title || 'Course'
+          await notificationService.notifyCertificateIssued(
+            user.$id,
+            (course as any).title || 'Course',
+            certificate.$id
           );
 
           toast.success('🎉 Congratulations! You completed the course!', {
@@ -134,7 +145,32 @@ export default function LessonView() {
       localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(updated));
 
       // Update progress in Appwrite
-      // await dbService.updateDocument(COLLECTIONS.PROGRESS, progressId, { ... });
+      if (user?.$id && courseId) {
+        // Try to find existing progress document
+        const progressRes = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
+          Query.equal('userId', user.$id),
+          Query.equal('courseId', courseId)
+        ]);
+        const completionPercentage = Math.max(0, Math.min(100, Math.round((updated.length / lessons.length) * 100)));
+        console.log('Calculated completion percentage:', completionPercentage);
+        
+        if (progressRes.documents.length > 0) {
+          // Update existing progress document
+          const progressDoc = progressRes.documents[0];
+          await dbService.updateDocument(COLLECTIONS.PROGRESS, progressDoc.$id, {
+            completedLessons: updated,
+            completionPercentage: completionPercentage
+          });
+        } else {
+          // Create new progress document
+          await dbService.createDocument(COLLECTIONS.PROGRESS, {
+            userId: user.$id,
+            courseId,
+            completedLessons: updated,
+            completionPercentage: completionPercentage
+          });
+        }
+      }
 
       toast.success('Lesson completed!');
 

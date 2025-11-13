@@ -25,7 +25,7 @@ export const notificationService = {
     actionUrl?: string,
     metadata?: Record<string, unknown>
   ): Promise<Notification> {
-    const notificationData: Omit<Notification, 'id'> = {
+    const notificationData: any = {
       userId,
       type,
       title,
@@ -33,7 +33,6 @@ export const notificationService = {
       read: false,
       createdAt: new Date().toISOString(),
       actionUrl,
-      metadata: metadata || {},
     };
 
     // Create notification in Appwrite
@@ -64,6 +63,10 @@ export const notificationService = {
    */
   async markAsRead(notificationId: string): Promise<void> {
     try {
+      if (!notificationId) {
+        console.error('Notification ID is required');
+        return;
+      }
       await dbService.updateDocument(COLLECTIONS.NOTIFICATIONS, notificationId, { read: true });
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -128,8 +131,7 @@ export const notificationService = {
       'success',
       'Course Completed!',
       `Congratulations! You have completed "${courseTitle}". View your certificate.`,
-      `/certificate/${certificateId}`,
-      { certificateId }
+      `/certificate/${certificateId}`
     );
     toast.success(`Congratulations! You completed ${courseTitle}!`, {
       description: 'Click here to view your certificate',
@@ -150,9 +152,7 @@ export const notificationService = {
       userId,
       passed ? 'success' : 'info',
       passed ? 'Quiz Passed!' : 'Quiz Completed',
-      `You scored ${score}% on the "${courseTitle}" quiz. ${passed ? 'Great job!' : 'Keep practicing!'}`,
-      undefined,
-      { score, passed }
+      `You scored ${score}% on the "${courseTitle}" quiz. ${passed ? 'Great job!' : 'Keep practicing!'}`
     );
     
     if (passed) {
@@ -178,8 +178,7 @@ export const notificationService = {
       'success',
       'Certificate Issued',
       `Your certificate for "${courseTitle}" has been issued. Download it now!`,
-      `/certificate/${certificateId}`,
-      { certificateId }
+      `/certificate/${certificateId}`
     );
   },
 };

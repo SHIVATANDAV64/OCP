@@ -39,12 +39,15 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && id) {
-      loadCourse();
-      checkEnrollment();
-    } else if (id) {
-      loadCourse();
-    }
+    const init = async () => {
+      if (user && id) {
+        await checkEnrollment();
+        await loadCourse();
+      } else if (id) {
+        await loadCourse();
+      }
+    };
+    init();
   }, [user, id]);
 
   const loadCourse = async () => {
@@ -57,6 +60,22 @@ export default function CourseDetail() {
       // Load curriculum (lessons) for this course
       const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', id)]);
       
+      // Fetch real progress for the user if enrolled
+      let completedLessonIds: string[] = [];
+      if (user) {
+        try {
+          const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
+            Query.equal('userId', user.$id),
+            Query.equal('courseId', id)
+          ]);
+          if (progressResponse.documents.length > 0) {
+            completedLessonIds = (progressResponse.documents[0] as any).completedLessons || [];
+          }
+        } catch (err) {
+          console.error('Error loading progress:', err);
+        }
+      }
+      
       // Group lessons by section
       const curriculum = [];
       const sections = new Map();
@@ -66,10 +85,11 @@ export default function CourseDetail() {
           sections.set(lesson.section, []);
         }
         sections.get(lesson.section).push({
-          id: lesson.$id,
+          id: lesson.id || lesson.$id,
           title: lesson.title,
           duration: lesson.duration || '0:00',
-          completed: isEnrolled && Math.random() > 0.5, // Placeholder completion status
+          videoUrl: lesson.videoUrl || '',
+          completed: completedLessonIds.includes(lesson.id || lesson.$id),
         });
       }
       
@@ -132,9 +152,27 @@ export default function CourseDetail() {
 
   const handleStartLearning = () => {
     if (!course) return;
-    const firstLesson = course.curriculum[0]?.lessons[0];
-    if (firstLesson) {
-      navigate(`/course/${id}/lesson/${firstLesson.id}`);
+    // Find the first incomplete lesson, or first lesson if none started
+    let nextLessonId = '';
+    for (const section of course.curriculum) {
+      for (const lesson of section.lessons) {
+        if (!lesson.completed) {
+          nextLessonId = lesson.id;
+          break;
+        }
+      }
+      if (nextLessonId) break;
+    }
+    // If no incomplete lessons found, start with first lesson
+    if (!nextLessonId && course.curriculum.length > 0 && course.curriculum[0].lessons.length > 0) {
+      nextLessonId = course.curriculum[0].lessons[0].id;
+    }
+    // Navigate to the lesson
+    if (nextLessonId) {
+      navigate(`/course/${id}/lesson/${nextLessonId}`);
+    } else {
+      // All lessons completed, go to quiz
+      navigate(`/quiz/${id}`);
     }
   };
 

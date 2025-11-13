@@ -7,12 +7,11 @@ export interface Certificate {
   id: string;
   userId: string;
   courseId: string;
-  courseTitle: string;
-  studentName: string;
-  completionDate: string;
+  courseName: string;
+  userName: string;
   instructorName: string;
+  completedAt: string;
   certificateNumber: string;
-  createdAt: string;
 }
 
 export const certificateService = {
@@ -22,19 +21,18 @@ export const certificateService = {
   async generateCertificate(
     userId: string,
     courseId: string,
-    courseTitle: string,
-    studentName: string,
+    courseName: string,
+    userName: string,
     instructorName: string
   ): Promise<Certificate> {
-    const certificateData: Omit<Certificate, 'id'> = {
+    const certificateData: any = {
       userId,
       courseId,
-      courseTitle,
-      studentName,
+      courseName,
+      userName,
       instructorName,
-      completionDate: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
       certificateNumber: `CERT-${Date.now().toString().slice(-8)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-      createdAt: new Date().toISOString(),
     };
 
     // Create certificate in Appwrite

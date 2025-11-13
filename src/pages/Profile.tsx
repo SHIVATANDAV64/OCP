@@ -45,11 +45,16 @@ export default function Profile() {
       setName(user.name);
       setEmail(user.email);
       
-      // Load user role from database
+      // Load user role and avatar from database
       const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
       if (userDoc.documents.length > 0) {
-        const role = (userDoc.documents[0] as any).role || 'student';
+        const userDocData = userDoc.documents[0] as Record<string, unknown>;
+        const role = (userDocData.role as string) || 'student';
+        const avatar = userDocData.avatar as string | undefined;
         setUserRole(role);
+        if (avatar) {
+          setAvatarPreview(avatar);
+        }
       }
       
       // Load certificates
@@ -90,8 +95,19 @@ export default function Profile() {
       }
 
       // Upload avatar if selected
-      if (avatarFile) {
-        await storage.createFile(BUCKETS.COURSE_THUMBNAILS, 'unique()', avatarFile);
+      if (avatarFile && user) {
+        const fileResponse = await storage.createFile(BUCKETS.COURSE_THUMBNAILS, 'unique()', avatarFile);
+        const avatarUrl = storage.getFileDownload(BUCKETS.COURSE_THUMBNAILS, fileResponse.$id);
+        const avatarUrlString = avatarUrl instanceof URL ? avatarUrl.toString() : (typeof avatarUrl === 'string' ? avatarUrl : avatarUrl.href);
+        
+        // Save avatar URL to user document in database
+        const userDocs = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
+        if (userDocs.documents.length > 0) {
+          await dbService.updateDocument(COLLECTIONS.USERS, userDocs.documents[0].$id, {
+            avatar: avatarUrlString
+          });
+        }
+        
         toast.success('Avatar uploaded successfully');
       }
 
@@ -325,9 +341,9 @@ export default function Profile() {
                   <div className="grid md:grid-cols-2 gap-6">
                     {certificates.map((cert) => (
                       <Card
-                        key={cert.id}
+                        key={cert.$id}
                         className="border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/certificate/${cert.id}`)}
+                        onClick={() => navigate(`/certificate/${cert.$id}`)}
                       >
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-4">
@@ -335,10 +351,10 @@ export default function Profile() {
                             <Badge variant="secondary">{cert.certificateNumber}</Badge>
                           </div>
                           <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                            {cert.courseTitle}
+                            {cert.courseName}
                           </h3>
                           <p className="text-sm text-gray-600 mb-4">
-                            Completed on {new Date(cert.completionDate).toLocaleDateString()}
+                            Completed on {new Date(cert.completedAt).toLocaleDateString()}
                           </p>
                           <Button variant="outline" size="sm" className="w-full">
                             View Certificate

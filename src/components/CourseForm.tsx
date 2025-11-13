@@ -7,7 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CurriculumBuilder from './CurriculumBuilder';
+import QuizBuilder from './QuizBuilder';
 import { dbService, storage, COLLECTIONS, BUCKETS } from '@/lib/appwrite';
+import { Query } from 'appwrite';
 import { ID } from 'appwrite';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +33,13 @@ interface Lesson {
   videoUrl?: string;
   duration: string;
   order: number;
+}
+
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
 }
 
 interface CourseFormProps {
@@ -60,6 +69,7 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
   );
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [error, setError] = useState('');
 
   const handleInputChange = (field: keyof CourseFormData, value: string) => {
@@ -83,7 +93,10 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
 
     try {
       const response = await storage.createFile(BUCKETS.COURSE_THUMBNAILS, ID.unique(), thumbnailFile);
-      return storage.getFileView(BUCKETS.COURSE_THUMBNAILS, response.$id).href;
+      const fileDownload = storage.getFileDownload(BUCKETS.COURSE_THUMBNAILS, response.$id);
+      const thumbnailUrl = fileDownload instanceof URL ? fileDownload.toString() : (typeof fileDownload === 'string' ? fileDownload : fileDownload.href);
+      console.log('Thumbnail uploaded with URL:', thumbnailUrl);
+      return thumbnailUrl;
     } catch (err) {
       console.error('Error uploading thumbnail:', err);
       throw new Error('Failed to upload thumbnail');
@@ -93,6 +106,18 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
   const handleSubmit = async (status: 'draft' | 'published') => {
     setIsLoading(true);
     setError('');
+
+    console.log('=== SUBMIT CALLED ===');
+    console.log('Current lessons in CourseForm state:', lessons);
+    console.log('Lessons count:', lessons.length);
+    lessons.forEach((lesson, idx) => {
+      console.log(`Lesson ${idx}:`, {
+        id: lesson.id,
+        title: lesson.title,
+        videoUrl: lesson.videoUrl,
+        duration: lesson.duration,
+      });
+    });
 
     try {
       // Validate form
@@ -120,10 +145,90 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
       };
 
       // Use Appwrite
+      let savedCourseId = courseId;
       if (courseId) {
         await dbService.updateDocument(COLLECTIONS.COURSES, courseId, courseData);
       } else {
-        await dbService.createDocument(COLLECTIONS.COURSES, courseData);
+        const savedCourse = await dbService.createDocument(COLLECTIONS.COURSES, courseData);
+        savedCourseId = (savedCourse as any).$id;
+      }
+
+      // Save lessons to LESSONS collection
+      if (savedCourseId && lessons.length > 0) {
+        console.log('Saving lessons to Appwrite. Lessons count:', lessons.length);
+        console.log('Lessons data:', lessons);
+        
+        for (const lesson of lessons) {
+          console.log('Processing lesson:', lesson.title, 'videoUrl:', lesson.videoUrl);
+          
+          if (lesson.title && lesson.videoUrl) {
+            const lessonData = {
+              courseId: savedCourseId,
+              title: lesson.title,
+              section: lesson.section,
+              duration: lesson.duration || '0:00',
+              videoUrl: lesson.videoUrl,
+              order: lesson.order || 0,
+            };
+            
+            console.log('Creating lesson with data:', lessonData);
+            
+            try {
+              console.log('Creating new lesson');
+              const savedLesson = await dbService.createDocument(COLLECTIONS.LESSONS, lessonData);
+              console.log('Lesson created:', savedLesson);
+            } catch (createErr) {
+              console.error('Failed to create lesson:', createErr);
+              toast.error(`Failed to create lesson: ${lesson.title}`);
+            }
+          } else {
+            console.warn('Skipping lesson - missing title or videoUrl:', lesson);
+          }
+        }
+      } else {
+        console.warn('No lessons to save. savedCourseId:', savedCourseId, 'lessons.length:', lessons.length);
+      }
+
+      // Save quiz to QUIZZES collection
+      if (savedCourseId && quizQuestions.length > 0) {
+        console.log('Saving quiz to Appwrite. Questions count:', quizQuestions.length);
+        
+        try {
+          // Extract correct answers and options for database schema
+          const correctAnswers = quizQuestions.map(q => q.correctAnswer);
+          const options = quizQuestions.map(q => q.options);
+          
+          const quizData = {
+            courseId: savedCourseId,
+            title: `${formData.title} Quiz`,
+            questions: JSON.stringify(quizQuestions),
+            correctAnswers: JSON.stringify(correctAnswers),
+            options: JSON.stringify(options),
+          };
+          
+          console.log('Creating quiz with data:', quizData);
+          
+          // Check if quiz already exists
+          const existingQuiz = await dbService.listDocuments(COLLECTIONS.QUIZZES, [
+            Query.equal('courseId', savedCourseId)
+          ]);
+          
+          if (existingQuiz.documents.length > 0) {
+            // Update existing quiz
+            console.log('Updating existing quiz');
+            await dbService.updateDocument(COLLECTIONS.QUIZZES, existingQuiz.documents[0].$id, quizData);
+          } else {
+            // Create new quiz
+            console.log('Creating new quiz');
+            const savedQuiz = await dbService.createDocument(COLLECTIONS.QUIZZES, quizData);
+            console.log('Quiz created:', savedQuiz);
+          }
+        } catch (err) {
+          console.error('Failed to save quiz:', err);
+          toast.error('Failed to save quiz');
+        }
+      } else {
+        console.log('No quiz questions to save');
       }
 
       if (onSuccess) {
@@ -164,6 +269,7 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
           <TabsList className="bg-[#F5F5F0] mb-6">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+            <TabsTrigger value="quiz">Quiz</TabsTrigger>
             <TabsTrigger value="pricing">Pricing & Settings</TabsTrigger>
           </TabsList>
 
@@ -241,6 +347,10 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
 
           <TabsContent value="curriculum">
             <CurriculumBuilder lessons={lessons} onLessonsChange={setLessons} courseId={courseId} />
+          </TabsContent>
+
+          <TabsContent value="quiz">
+            <QuizBuilder questions={quizQuestions} onQuestionsChange={setQuizQuestions} />
           </TabsContent>
 
           <TabsContent value="pricing" className="space-y-6">

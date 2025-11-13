@@ -55,13 +55,16 @@ export default function Quiz() {
       if (response.documents.length > 0) {
         const quizData = response.documents[0] as any;
         
+        // Parse the JSON-stringified questions
+        const questions = typeof quizData.questions === 'string' ? JSON.parse(quizData.questions) : quizData.questions;
+        
         // Fetch course title for display
         const courseResponse = await dbService.getDocument(COLLECTIONS.COURSES, courseId);
         
         setQuiz({
           courseId: courseId,
           courseTitle: (courseResponse as any).title || 'Course',
-          questions: quizData.questions || [],
+          questions: questions || [],
         });
       } else {
         setError('Quiz not found for this course');
@@ -108,52 +111,64 @@ export default function Quiz() {
     const percentage = (correctCount / quiz.questions.length) * 100;
     const passed = percentage >= 70;
 
-    if (passed && courseId) {
-      // Mark quiz as completed
-      localStorage.setItem(`course_${courseId}_quiz_completed`, 'true');
+    if (passed && courseId && user?.$id) {
+      try {
+        // Mark quiz as completed
+        localStorage.setItem(`course_${courseId}_quiz_completed`, 'true');
 
-      // Create quiz completion notification
-      await notificationService.createQuizCompletionNotification(
-        user?.$id || '',
-        courseId,
-        quiz.courseTitle,
-        percentage
-      );
+        // Create quiz result notification using the correct method
+        await notificationService.notifyQuizResult(
+          user.$id,
+          quiz.courseTitle,
+          Math.round(percentage),
+          passed
+        );
 
-      // Check if course is complete (all lessons + quiz)
-      await checkCourseCompletion();
+        // Check if course is complete (all lessons + quiz)
+        await checkCourseCompletion();
+      } catch (error) {
+        console.error('Error creating notification:', error);
+      }
     }
   };
 
   const checkCourseCompletion = async () => {
-    if (!courseId) return;
+    if (!courseId || !user) return;
 
     // Get completed lessons
     const savedLessons = localStorage.getItem(`course_${courseId}_completed`);
     const completedLessons = savedLessons ? JSON.parse(savedLessons) : [];
 
-    // In production, fetch actual lesson count from Appwrite
-    const totalLessons = 10; // Mock value
-    const allLessonsCompleted = completedLessons.length >= totalLessons;
+    // Get actual lesson count from Appwrite
+    try {
+      const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [
+        Query.equal('courseId', courseId)
+      ]);
+      const totalLessons = lessonsResponse.documents.length;
+      const allLessonsCompleted = completedLessons.length >= totalLessons;
 
-    if (allLessonsCompleted) {
-      try {
+      if (allLessonsCompleted && quiz) {
         // Check if certificate already exists
-        const hasCert = await certificateService.hasCertificate(user?.$id || '', courseId);
+        const hasCert = await certificateService.hasCertificate(user.$id, courseId);
         
         if (!hasCert) {
+          // Fetch course data for instructor info
+          const course = await dbService.getDocument(COLLECTIONS.COURSES, courseId);
+          
           // Generate certificate
           const certificate = await certificateService.generateCertificate(
-            user?.$id || '',
+            user.$id,
             courseId,
-            user?.name || 'Student'
+            quiz.courseTitle,
+            user.name || 'Student',
+            (course as any).instructorName || 'Instructor'
           );
 
           // Create notification
-          await notificationService.createCourseCompletionNotification(
-            user?.$id || '',
-            courseId,
-            quiz.courseTitle
+          await notificationService.notifyCertificateIssued(
+            user.$id,
+            quiz.courseTitle,
+            certificate.$id
           );
 
           toast.success('🎉 Congratulations! You completed the course!', {
@@ -165,9 +180,9 @@ export default function Quiz() {
             duration: 10000
           });
         }
-      } catch (error) {
-        console.error('Error generating certificate:', error);
       }
+    } catch (error) {
+      console.error('Error checking course completion:', error);
     }
   };
 
@@ -287,7 +302,7 @@ export default function Quiz() {
             <CardDescription className="text-lg text-gray-700 mt-4">{question.question}</CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup value={selectedAnswers[currentQuestion]} onValueChange={(value: string) => handleAnswerSelect(currentQuestion, value)}>
+            <RadioGroup value={selectedAnswers[currentQuestion] || ''} onValueChange={(value: string) => handleAnswerSelect(currentQuestion, value)}>
               <div className="space-y-4">
                 {question.options.map((option, index) => (
                   <div key={index} className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:bg-[#F5F5F0] cursor-pointer">

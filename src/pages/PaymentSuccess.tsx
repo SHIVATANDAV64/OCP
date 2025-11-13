@@ -4,9 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { stripeService } from '@/lib/stripe';
+import functionsService from '@/services/functionsService';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
@@ -33,6 +37,26 @@ export default function PaymentSuccess() {
       
       if (!isVerified) {
         setError('Payment verification failed');
+      } else {
+        // Payment verified, now enroll the user
+        if (user && courseId) {
+          try {
+            const enrollResult = await functionsService.enrollCourse({
+              userId: user.$id,
+              courseId: courseId,
+            });
+            console.log('Enrollment result:', enrollResult);
+            if (!enrollResult.success) {
+              console.error('Enrollment failed:', enrollResult.error);
+              toast.error('Failed to enroll in course');
+            } else {
+              toast.success('You have been enrolled in the course!');
+            }
+          } catch (enrollErr) {
+            console.error('Enrollment error:', enrollErr);
+            toast.error('Failed to enroll in course');
+          }
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to verify payment';

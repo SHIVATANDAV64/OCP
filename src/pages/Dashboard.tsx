@@ -76,12 +76,29 @@ export default function Dashboard() {
         for (const enrollment of (enrollmentsResponse.documents as any[])) {
           try {
             const courseData = await dbService.getDocument(COLLECTIONS.COURSES, enrollment.courseId);
+            
+            // Fetch lessons for the course
+            const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', enrollment.courseId)]);
+            
+            // Fetch progress for the user and course
+            const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
+              Query.equal('userId', user?.$id || ''),
+              Query.equal('courseId', enrollment.courseId)
+            ]);
+            
+            const completedLessons = progressResponse.documents.length > 0 ? (progressResponse.documents[0] as any).completedLessons || [] : [];
+            const progress = progressResponse.documents.length > 0 ? (progressResponse.documents[0] as any).completionPercentage || 0 : 0;
+            
+            // Find the next incomplete lesson
+            const nextLessonObj = lessonsResponse.documents.find((lesson: any) => !completedLessons.includes(lesson.id));
+            const nextLesson = nextLessonObj ? (nextLessonObj as any).id : '';
+            
             courses.push({
               id: courseData.$id,
               title: (courseData as any).title || 'Untitled',
-              progress: Math.random() * 100, // In production, calculate from progress collection
+              progress: progress,
               thumbnail: (courseData as any).thumbnail || 'https://via.placeholder.com/300x200',
-              nextLesson: 'Next Lesson',
+              nextLesson: nextLesson,
             });
           } catch (err) {
             console.error('Error loading course:', err);
@@ -196,7 +213,12 @@ export default function Dashboard() {
                         </div>
                         <Progress value={course.progress} className="h-2" />
                       </div>
-                      <Button className="w-full mt-4 bg-gray-900 hover:bg-gray-800">Continue Learning</Button>
+                      <Button
+                        className="w-full mt-4 bg-gray-900 hover:bg-gray-800"
+                        onClick={() => navigate(`/course/${course.id}${course.nextLesson && course.nextLesson !== 'Next Lesson' ? `/lesson/${course.nextLesson}` : ''}`)}
+                      >
+                        Continue Learning
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}

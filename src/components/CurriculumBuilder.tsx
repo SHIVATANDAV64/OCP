@@ -55,21 +55,44 @@ export default function CurriculumBuilder({ lessons, onLessonsChange, courseId }
     setUploadingIndex(index);
 
     try {
+      // Extract duration from video first
+      const duration = await new Promise<string>((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          const dur = Math.floor(video.duration);
+          const mins = Math.floor(dur / 60);
+          const secs = dur % 60;
+          resolve(`${mins}:${secs.toString().padStart(2, '0')}`);
+        };
+        video.onerror = () => resolve('0:00');
+        video.src = URL.createObjectURL(file);
+      });
+
       // Real upload to Appwrite
       const response = await storage.createFile(BUCKETS.COURSE_VIDEOS, ID.unique(), file);
-      const videoUrl = storage.getFileView(BUCKETS.COURSE_VIDEOS, response.$id).href;
-      updateLesson(index, 'videoUrl', videoUrl);
-
-      // Extract duration from video (simplified)
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.onloadedmetadata = () => {
-        const duration = Math.floor(video.duration);
-        const mins = Math.floor(duration / 60);
-        const secs = duration % 60;
-        updateLesson(index, 'duration', `${mins}:${secs.toString().padStart(2, '0')}`);
+      console.log('Upload response:', response);
+      console.log('File ID:', response.$id);
+      
+      // Get the file download URL - this is more reliable than view URL
+      const fileDownload = storage.getFileDownload(BUCKETS.COURSE_VIDEOS, response.$id);
+      console.log('File download:', fileDownload);
+      console.log('File download type:', typeof fileDownload);
+      
+      // Convert to string URL
+      const videoUrl = fileDownload instanceof URL ? fileDownload.toString() : (typeof fileDownload === 'string' ? fileDownload : fileDownload.href);
+      console.log('Final video URL:', videoUrl);
+      
+      // Update lesson with BOTH videoUrl and duration at once
+      const updatedLessons = [...lessons];
+      updatedLessons[index] = {
+        ...updatedLessons[index],
+        videoUrl: videoUrl,
+        duration: duration,
       };
-      video.src = URL.createObjectURL(file);
+      console.log('Updated lesson with videoUrl and duration:', updatedLessons[index]);
+      onLessonsChange(updatedLessons);
+      console.log('Lesson updated with both videoUrl and duration');
     } catch (error) {
       console.error('Error uploading video:', error);
       alert('Failed to upload video. Please try again.');
@@ -157,11 +180,16 @@ export default function CurriculumBuilder({ lessons, onLessonsChange, courseId }
                           ) : (
                             <div className="flex items-center gap-2">
                               <Input
+                                key={`video-${lesson.id}`}
                                 type="file"
                                 accept="video/*"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
-                                  if (file) handleVideoUpload(globalIndex, file);
+                                  if (file) {
+                                    handleVideoUpload(globalIndex, file);
+                                    // Reset file input
+                                    e.target.value = '';
+                                  }
                                 }}
                                 disabled={uploadingIndex === globalIndex}
                                 className="border-gray-300"

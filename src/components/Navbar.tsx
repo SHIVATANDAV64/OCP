@@ -53,10 +53,20 @@ export default function Navbar() {
                   onClick={() => navigate('/profile')}
                   variant="ghost"
                   size="sm"
-                  className="flex items-center space-x-2 text-gray-700"
+                  className="flex items-center space-x-2 text-gray-700 hover:bg-gray-100"
                 >
-                  <User className="h-5 w-5" />
-                  <span className="text-sm">{user.name}</span>
+                  {(user as any).avatar ? (
+                    <img
+                      src={(user as any).avatar}
+                      alt={user.name}
+                      className="h-8 w-8 rounded-full object-cover border-2 border-gray-300"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <User className="h-5 w-5 text-gray-600" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium">{user.name}</span>
                 </Button>
                 <Button onClick={handleLogout} variant="outline" size="sm" className="border-gray-300">
                   <LogOut className="h-4 w-4 mr-2" />
@@ -98,7 +108,18 @@ export default function Navbar() {
             <div className="pt-4 border-t border-gray-200 space-y-2">
               {user ? (
                 <>
-                  <div className="text-gray-700 text-sm">Logged in as {user.name}</div>
+                  <div className="flex items-center space-x-2 text-gray-700 text-sm py-2">
+                    {(user as any).avatar ? (
+                      <img
+                        src={(user as any).avatar}
+                        alt={user.name}
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-6 w-6" />
+                    )}
+                    <span>Logged in as {user.name}</span>
+                  </div>
                   <Button onClick={() => { setIsOpen(false); navigate('/profile'); }} variant="outline" className="w-full border-gray-300">
                     Profile
                   </Button>
