@@ -15,7 +15,7 @@
  */
 
 import Stripe from 'stripe';
-import { Client, Databases, ID } from 'node-appwrite';
+import { Client, Databases, ID, Query } from 'node-appwrite';
 import https from 'https';
 
 export default async ({ req, res, log, error }) => {
@@ -121,8 +121,8 @@ export default async ({ req, res, log, error }) => {
         process.env.DATABASE_ID,
         'enrollments',
         [
-          `userId="${userId}"`,
-          `courseId="${courseId}"`
+          Query.equal('userId', userId),
+          Query.equal('courseId', courseId)
         ]
       );
 
