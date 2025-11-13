@@ -10,6 +10,8 @@ import CurriculumBuilder from './CurriculumBuilder';
 import { dbService, storage, COLLECTIONS, BUCKETS } from '@/lib/appwrite';
 import { ID } from 'appwrite';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface CourseFormData {
   title: string;
@@ -39,6 +41,7 @@ interface CourseFormProps {
 
 export default function CourseForm({ courseId, initialData, onSuccess }: CourseFormProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState('basic');
   const [isLoading, setIsLoading] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -103,11 +106,15 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
       const thumbnailUrl = await uploadThumbnail();
 
       const courseData = {
-        ...formData,
-        status,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        level: formData.level,
+        price: formData.price || '0',
+        duration: formData.duration || '0 hours',
         thumbnail: thumbnailUrl,
-        instructorId: 'current_user_id', // Replace with actual user ID
-        instructorName: 'Current User', // Replace with actual user name
+        instructorId: user?.$id || '',
+        instructorName: user?.name || 'Unknown',
         rating: 0,
         students: 0,
       };
@@ -127,6 +134,18 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save course';
       setError(errorMessage);
+      console.error('Course creation error:', err);
+      
+      // Log full error details for debugging
+      if (err instanceof Error) {
+        console.error('Error details:', {
+          message: err.message,
+          name: err.name,
+          stack: err.stack,
+        });
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
-import { dbService, COLLECTIONS } from '@/lib/appwrite';
+import { dbService, COLLECTIONS, Query } from '@/lib/appwrite';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import certificateService from '@/services/certificateService';
 import notificationService from '@/services/notificationService';
@@ -23,6 +24,7 @@ interface Lesson {
 export default function LessonView() {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -84,21 +86,22 @@ export default function LessonView() {
     if (allLessonsCompleted && quizCompleted) {
       try {
         // Check if certificate already exists
-        const hasCert = await certificateService.hasCertificate('current_user_id', courseId);
+        const hasCert = await certificateService.hasCertificate(user?.$id || '', courseId);
         
         if (!hasCert) {
           // Generate certificate
           const certificate = await certificateService.generateCertificate(
-            'current_user_id',
+            user?.$id || '',
             courseId,
-            'Current User' // Replace with actual user name
+            user?.name || 'Student'
           );
 
           // Create notification
+          const course = await dbService.getDocument(COLLECTIONS.COURSES, courseId);
           await notificationService.createCourseCompletionNotification(
-            'current_user_id',
+            user?.$id || '',
             courseId,
-            'Course Title' // Replace with actual course title
+            (course as any).title || 'Course'
           );
 
           toast.success('🎉 Congratulations! You completed the course!', {

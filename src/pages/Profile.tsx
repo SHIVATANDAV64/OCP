@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Mail, Lock, Award, BookOpen, Settings } from 'lucide-react';
+import { User, Mail, Lock, Award, BookOpen, Settings, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { storage, BUCKETS, authService } from '@/lib/appwrite';
+import { storage, BUCKETS, authService, dbService, COLLECTIONS, Query } from '@/lib/appwrite';
 import { certificateService } from '@/services/certificateService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [certificates, setCertificates] = useState<any[]>([]);
+  const [userRole, setUserRole] = useState<string>('student');
   
   // Profile form state
   const [name, setName] = useState('');
@@ -43,6 +44,13 @@ export default function Profile() {
     try {
       setName(user.name);
       setEmail(user.email);
+      
+      // Load user role from database
+      const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
+      if (userDoc.documents.length > 0) {
+        const role = (userDoc.documents[0] as any).role || 'student';
+        setUserRole(role);
+      }
       
       // Load certificates
       const userCertificates = await certificateService.getUserCertificates(user.$id);
@@ -138,7 +146,23 @@ export default function Profile() {
     <div className="min-h-screen bg-[#FDFCF9] py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-gray-900">My Profile</h1>
+            <div className="flex items-center gap-2">
+              {userRole === 'admin' && (
+                <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Admin
+                </Badge>
+              )}
+              {userRole === 'instructor' && (
+                <Badge className="bg-blue-100 text-blue-800">Instructor</Badge>
+              )}
+              {userRole === 'student' && (
+                <Badge className="bg-green-100 text-green-800">Student</Badge>
+              )}
+            </div>
+          </div>
           <p className="text-gray-600">Manage your account settings and view your achievements</p>
         </div>
 
@@ -215,6 +239,27 @@ export default function Profile() {
                       required
                       className="mt-1"
                     />
+                  </div>
+
+                  {/* User Role (readonly) */}
+                  <div>
+                    <Label htmlFor="role">Account Role</Label>
+                    <div className="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md flex items-center justify-between">
+                      <span className="text-gray-700 capitalize font-medium">{userRole}</span>
+                      {userRole === 'admin' && (
+                        <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </Badge>
+                      )}
+                      {userRole === 'instructor' && (
+                        <Badge className="bg-blue-100 text-blue-800">Instructor</Badge>
+                      )}
+                      {userRole === 'student' && (
+                        <Badge className="bg-green-100 text-green-800">Student</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Your account role cannot be changed directly. Contact support if needed.</p>
                   </div>
 
                   {/* Email (readonly) */}

@@ -46,7 +46,17 @@ export const stripeService = {
       }
 
       // Parse the response from the function
-      const responseData = JSON.parse(result.data.responseBody);
+      let responseData = result.data.responseBody;
+      
+      // Handle if responseBody is already a string that needs parsing
+      if (typeof responseData === 'string') {
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (parseError) {
+          console.error('Failed to parse response:', responseData);
+          throw new Error('Invalid response format from checkout service');
+        }
+      }
       
       if (!responseData.success) {
         throw new Error(responseData.message || 'Failed to create checkout session');
@@ -80,7 +90,17 @@ export const stripeService = {
       }
 
       // Parse the response from the function
-      const responseData = JSON.parse(result.data.responseBody);
+      let responseData = result.data.responseBody;
+      
+      // Handle if responseBody is already a string that needs parsing
+      if (typeof responseData === 'string') {
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (parseError) {
+          console.error('Failed to parse verification response:', responseData);
+          return false;
+        }
+      }
       
       return responseData.verified === true;
     } catch (error) {

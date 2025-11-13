@@ -7,7 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { dbService, COLLECTIONS } from '@/lib/appwrite';
+import { dbService, COLLECTIONS, Query } from '@/lib/appwrite';
+import { useAuth } from '@/contexts/AuthContext';
 import certificateService from '@/services/certificateService';
 import notificationService from '@/services/notificationService';
 
@@ -27,6 +28,7 @@ interface Quiz {
 export default function Quiz() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
   const [showResults, setShowResults] = useState(false);
@@ -112,7 +114,7 @@ export default function Quiz() {
 
       // Create quiz completion notification
       await notificationService.createQuizCompletionNotification(
-        'current_user_id',
+        user?.$id || '',
         courseId,
         quiz.courseTitle,
         percentage
@@ -137,19 +139,19 @@ export default function Quiz() {
     if (allLessonsCompleted) {
       try {
         // Check if certificate already exists
-        const hasCert = await certificateService.hasCertificate('current_user_id', courseId);
+        const hasCert = await certificateService.hasCertificate(user?.$id || '', courseId);
         
         if (!hasCert) {
           // Generate certificate
           const certificate = await certificateService.generateCertificate(
-            'current_user_id',
+            user?.$id || '',
             courseId,
-            'Current User' // Replace with actual user name
+            user?.name || 'Student'
           );
 
           // Create notification
           await notificationService.createCourseCompletionNotification(
-            'current_user_id',
+            user?.$id || '',
             courseId,
             quiz.courseTitle
           );

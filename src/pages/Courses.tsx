@@ -237,7 +237,7 @@ export default function Courses() {
               className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-gray-200"
               onClick={() => navigate(`/course/${course.$id || course.id}`)}
             >
-              <img src={course.image} alt={course.title} className="w-full h-48 object-cover" />
+              <img src={course.thumbnail} alt={course.title} className="w-full h-48 object-cover" />
               <CardHeader>
                 <div className="text-xs text-gray-500 mb-2">{course.category}</div>
                 <CardTitle className="text-xl text-gray-900">{course.title}</CardTitle>
