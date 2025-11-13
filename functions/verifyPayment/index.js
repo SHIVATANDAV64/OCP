@@ -16,6 +16,7 @@
 
 import Stripe from 'stripe';
 import { Client, Databases, ID } from 'node-appwrite';
+import https from 'https';
 
 export default async ({ req, res, log, error }) => {
   try {
@@ -32,7 +33,12 @@ export default async ({ req, res, log, error }) => {
 
     log('✓ All environment variables present');
     
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    // Initialize Stripe with explicit API version and HTTP agent
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+      httpAgent: new https.Agent({ keepAlive: false }), // Disable keep-alive
+      timeout: 20000,
+    });
     
     const client = new Client()
       .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
@@ -41,13 +47,27 @@ export default async ({ req, res, log, error }) => {
 
     const databases = new Databases(client);
 
-    // Parse and validate request
+    // Parse and validate request - handle multiple body formats
+    log('Parsing request body...');
     let bodyData = {};
-    if (typeof req.body === 'string') {
-      bodyData = JSON.parse(req.body);
-    } else if (req.body) {
+    
+    // Check if body is already parsed
+    if (typeof req.body === 'object' && req.body !== null) {
       bodyData = req.body;
+    } else if (typeof req.body === 'string') {
+      try {
+        bodyData = JSON.parse(req.body);
+      } catch (parseErr) {
+        log('Failed to parse body as JSON, treating as plain string');
+        return res.json({
+          success: false,
+          verified: false,
+          message: 'Invalid request body format',
+        }, 400);
+      }
     }
+    
+    log('Parsed body data:', JSON.stringify(bodyData));
 
     const { sessionId } = bodyData;
 
@@ -60,9 +80,12 @@ export default async ({ req, res, log, error }) => {
     }
 
     log('✓ Retrieving payment session');
+    log('Session ID to retrieve:', sessionId);
+    log('Stripe API Key (first 10 chars):', process.env.STRIPE_SECRET_KEY?.substring(0, 10));
 
     // Retrieve checkout session from Stripe
     try {
+      log('Calling Stripe API...');
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       
       if (!session) {
