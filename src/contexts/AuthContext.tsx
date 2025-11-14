@@ -21,11 +21,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     try {
       const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        setUser(null);
+        return;
+      }
+
       let userData = { ...currentUser };
-      
+
       // Load avatar from database
       try {
-        const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', currentUser.$id)]);
+        const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', [currentUser.$id])]);
         if (userDoc.documents.length > 0) {
           const userDocData = userDoc.documents[0] as Record<string, unknown>;
           const avatar = userDocData.avatar as string | undefined;
@@ -36,9 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Error loading avatar:', error);
       }
-      
+
       setUser(userData as Models.User<Models.Preferences> & { avatar?: string });
     } catch (error) {
+      console.error('Error refreshing user:', error);
       setUser(null);
     }
   };
@@ -59,8 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+    } catch (error) {
+      // Log and continue — we still want to clear local state even if remote logout failed
+      console.warn('Logout failed (ignored):', error);
+    }
+
+    // Ensure local auth state is cleared and re-validated
+    try {
+      await refreshUser();
+    } catch (err) {
+      // If refreshUser fails, fall back to clearing the user state
+      setUser(null);
+    }
   };
 
   return (

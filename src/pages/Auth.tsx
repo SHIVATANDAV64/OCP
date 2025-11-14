@@ -83,7 +83,7 @@ export default function Auth() {
         const current = await authService.getCurrentUser();
         if (current) {
           const existing = await dbService.listDocuments(COLLECTIONS.USERS, [
-            Query.equal('userId', current.$id),
+            Query.equal('userId', [current.$id]),
           ]);
           if (existing.documents.length === 0) {
             await dbService.createDocument(COLLECTIONS.USERS, {

@@ -45,9 +45,9 @@ export const notificationService = {
    */
   async getUserNotifications(userId: string, unreadOnly = false): Promise<Notification[]> {
     try {
-      const queries = [Query.equal('userId', userId)];
+      const queries = [Query.equal('userId', [userId])];
       if (unreadOnly) {
-        queries.push(Query.equal('read', false));
+        queries.push(Query.equal('read', [false]));
       }
 
       const response = await dbService.listDocuments(COLLECTIONS.NOTIFICATIONS, queries);

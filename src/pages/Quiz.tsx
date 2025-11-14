@@ -50,7 +50,7 @@ export default function Quiz() {
 
     try {
       // Fetch quiz from Appwrite
-      const response = await dbService.listDocuments(COLLECTIONS.QUIZZES, [Query.equal('courseId', courseId)]);
+      const response = await dbService.listDocuments(COLLECTIONS.QUIZZES, [Query.equal('courseId', [courseId])]);
       
       if (response.documents.length > 0) {
         const quizData = response.documents[0] as any;
@@ -142,7 +142,7 @@ export default function Quiz() {
     // Get actual lesson count from Appwrite
     try {
       const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [
-        Query.equal('courseId', courseId)
+        Query.equal('courseId', [courseId])
       ]);
       const totalLessons = lessonsResponse.documents.length;
       const allLessonsCompleted = completedLessons.length >= totalLessons;

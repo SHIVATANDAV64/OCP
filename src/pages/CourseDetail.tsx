@@ -58,15 +58,15 @@ export default function CourseDetail() {
       const courseData = await dbService.getDocument(COLLECTIONS.COURSES, id);
       
       // Load curriculum (lessons) for this course
-      const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', id)]);
+      const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', [id])]);
       
       // Fetch real progress for the user if enrolled
       let completedLessonIds: string[] = [];
       if (user) {
         try {
           const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
-            Query.equal('userId', user.$id),
-            Query.equal('courseId', id)
+            Query.equal('userId', [user.$id]),
+            Query.equal('courseId', [id])
           ]);
           if (progressResponse.documents.length > 0) {
             completedLessonIds = (progressResponse.documents[0] as any).completedLessons || [];
@@ -126,8 +126,8 @@ export default function CourseDetail() {
     try {
       // Check if user is enrolled in this course
       const enrollmentsResponse = await dbService.listDocuments(COLLECTIONS.ENROLLMENTS, [
-        Query.equal('userId', user.$id),
-        Query.equal('courseId', id)
+        Query.equal('userId', [user.$id]),
+        Query.equal('courseId', [id])
       ]);
       setIsEnrolled(enrollmentsResponse.documents.length > 0);
     } catch (error) {

@@ -13,7 +13,7 @@
  * }
  */
 
-import { Client, Databases, ID } from 'node-appwrite';
+import { Client, Databases, ID, Query } from 'node-appwrite';
 
 export default async ({ req, res, log, error }) => {
   try {
@@ -57,8 +57,8 @@ export default async ({ req, res, log, error }) => {
       process.env.DATABASE_ID,
       'enrollments',
       [
-        `userId="${userId}"`,
-        `courseId="${courseId}"`
+        Query.equal('userId', [userId]),
+        Query.equal('courseId', [courseId])
       ]
     );
 

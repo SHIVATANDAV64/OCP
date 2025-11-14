@@ -47,7 +47,7 @@ export const reviewService = {
   async getCourseReviews(courseId: string, limit = 10, offset = 0): Promise<Review[]> {
     try {
       const response = await dbService.listDocuments(COLLECTIONS.REVIEWS, [
-        Query.equal('courseId', courseId),
+        Query.equal('courseId', [courseId]),
         Query.limit(limit),
         Query.offset(offset),
       ]);
@@ -65,8 +65,8 @@ export const reviewService = {
   async getUserReview(userId: string, courseId: string): Promise<Review | null> {
     try {
       const response = await dbService.listDocuments(COLLECTIONS.REVIEWS, [
-        Query.equal('userId', userId),
-        Query.equal('courseId', courseId),
+        Query.equal('userId', [userId]),
+        Query.equal('courseId', [courseId]),
       ]);
 
       return response.documents.length > 0 ? (response.documents[0] as unknown as Review) : null;

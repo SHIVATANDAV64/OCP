@@ -121,8 +121,8 @@ export default async ({ req, res, log, error }) => {
         process.env.DATABASE_ID,
         'enrollments',
         [
-          Query.equal('userId', userId),
-          Query.equal('courseId', courseId)
+          Query.equal('userId', [userId]),
+          Query.equal('courseId', [courseId])
         ]
       );
 

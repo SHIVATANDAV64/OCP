@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Mail, Lock, Award, BookOpen, Settings, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { storage, BUCKETS, authService, dbService, COLLECTIONS, Query } from '@/lib/appwrite';
+import { storage, BUCKETS, authService, dbService, COLLECTIONS, Query, ID } from '@/lib/appwrite';
 import { certificateService } from '@/services/certificateService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -46,7 +46,7 @@ export default function Profile() {
       setEmail(user.email);
       
       // Load user role and avatar from database
-      const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
+      const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', [user.$id])]);
       if (userDoc.documents.length > 0) {
         const userDocData = userDoc.documents[0] as Record<string, unknown>;
         const role = (userDocData.role as string) || 'student';
@@ -96,12 +96,12 @@ export default function Profile() {
 
       // Upload avatar if selected
       if (avatarFile && user) {
-        const fileResponse = await storage.createFile(BUCKETS.COURSE_THUMBNAILS, 'unique()', avatarFile);
+        const fileResponse = await storage.createFile(BUCKETS.COURSE_THUMBNAILS, ID.unique(), avatarFile);
         const avatarUrl = storage.getFileDownload(BUCKETS.COURSE_THUMBNAILS, fileResponse.$id);
         const avatarUrlString = avatarUrl instanceof URL ? avatarUrl.toString() : (typeof avatarUrl === 'string' ? avatarUrl : avatarUrl.href);
         
         // Save avatar URL to user document in database
-        const userDocs = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
+        const userDocs = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', [user.$id])]);
         if (userDocs.documents.length > 0) {
           await dbService.updateDocument(COLLECTIONS.USERS, userDocs.documents[0].$id, {
             avatar: avatarUrlString

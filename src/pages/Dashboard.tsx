@@ -54,7 +54,7 @@ export default function Dashboard() {
   const loadUserRole = async () => {
     if (!user) return;
     try {
-      const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', user.$id)]);
+      const userDoc = await dbService.listDocuments(COLLECTIONS.USERS, [Query.equal('userId', [user.$id])]);
       if (userDoc.documents.length > 0) {
         const role = (userDoc.documents[0] as any).role || 'student';
         setActualRole(role);
@@ -70,7 +70,7 @@ export default function Dashboard() {
     try {
       if (userRole === 'student') {
         // Load enrolled courses for student
-        const enrollmentsResponse = await dbService.listDocuments(COLLECTIONS.ENROLLMENTS, [Query.equal('userId', user?.$id || '')]);
+        const enrollmentsResponse = await dbService.listDocuments(COLLECTIONS.ENROLLMENTS, [Query.equal('userId', [user?.$id || ''])]);
         
         const courses: EnrolledCourse[] = [];
         for (const enrollment of (enrollmentsResponse.documents as any[])) {
@@ -78,12 +78,12 @@ export default function Dashboard() {
             const courseData = await dbService.getDocument(COLLECTIONS.COURSES, enrollment.courseId);
             
             // Fetch lessons for the course
-            const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', enrollment.courseId)]);
+            const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', [enrollment.courseId])]);
             
             // Fetch progress for the user and course
             const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
-              Query.equal('userId', user?.$id || ''),
-              Query.equal('courseId', enrollment.courseId)
+              Query.equal('userId', [user?.$id || '']),
+              Query.equal('courseId', [enrollment.courseId])
             ]);
             
             const completedLessons = progressResponse.documents.length > 0 ? (progressResponse.documents[0] as any).completedLessons || [] : [];
@@ -107,7 +107,7 @@ export default function Dashboard() {
         setEnrolledCourses(courses);
       } else if (userRole === 'instructor') {
         // Load instructor's courses
-        const coursesResponse = await dbService.listDocuments(COLLECTIONS.COURSES, [Query.equal('instructorId', user?.$id || '')]);
+        const coursesResponse = await dbService.listDocuments(COLLECTIONS.COURSES, [Query.equal('instructorId', [user?.$id || ''])]);
         
         const courses: InstructorCourse[] = (coursesResponse.documents as any[]).map(course => ({
           id: course.$id,

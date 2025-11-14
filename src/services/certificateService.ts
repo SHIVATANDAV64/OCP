@@ -58,7 +58,7 @@ export const certificateService = {
    */
   async getUserCertificates(userId: string): Promise<Certificate[]> {
     try {
-      const response = await dbService.listDocuments('certificates', [Query.equal('userId', userId)]);
+      const response = await dbService.listDocuments('certificates', [Query.equal('userId', [userId])]);
       return response.documents as unknown as Certificate[];
     } catch (error) {
       console.error('Error fetching user certificates:', error);
@@ -72,8 +72,8 @@ export const certificateService = {
   async hasCertificate(userId: string, courseId: string): Promise<boolean> {
     try {
       const response = await dbService.listDocuments('certificates', [
-        Query.equal('userId', userId),
-        Query.equal('courseId', courseId),
+        Query.equal('userId', [userId]),
+        Query.equal('courseId', [courseId]),
       ]);
       return response.documents.length > 0;
     } catch (error) {
@@ -88,7 +88,7 @@ export const certificateService = {
   async verifyCertificate(certificateNumber: string): Promise<Certificate | null> {
     try {
       const response = await dbService.listDocuments('certificates', [
-        Query.equal('certificateNumber', certificateNumber),
+        Query.equal('certificateNumber', [certificateNumber]),
       ]);
 
       if (response.documents.length > 0) {

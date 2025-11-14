@@ -50,7 +50,7 @@ export default function LessonView() {
 
     try {
       // Load from Appwrite
-      const response = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', courseId)]);
+      const response = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', [courseId])]);
       console.log('Raw lessons from Appwrite:', response.documents);
       const lessonsWithIds = response.documents.map((doc: any) => ({
         ...doc,
@@ -148,8 +148,8 @@ export default function LessonView() {
       if (user?.$id && courseId) {
         // Try to find existing progress document
         const progressRes = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
-          Query.equal('userId', user.$id),
-          Query.equal('courseId', courseId)
+          Query.equal('userId', [user.$id]),
+          Query.equal('courseId', [courseId])
         ]);
         const completionPercentage = Math.max(0, Math.min(100, Math.round((updated.length / lessons.length) * 100)));
         console.log('Calculated completion percentage:', completionPercentage);

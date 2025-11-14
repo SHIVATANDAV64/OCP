@@ -210,7 +210,7 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
           
           // Check if quiz already exists
           const existingQuiz = await dbService.listDocuments(COLLECTIONS.QUIZZES, [
-            Query.equal('courseId', savedCourseId)
+            Query.equal('courseId', [savedCourseId])
           ]);
           
           if (existingQuiz.documents.length > 0) {

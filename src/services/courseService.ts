@@ -26,7 +26,7 @@ export const courseService = {
   },
 
   async getLessons(courseId: string) {
-    return await dbService.listDocuments('lessons', [Query.equal('courseId', courseId)]);
+    return await dbService.listDocuments('lessons', [Query.equal('courseId', [courseId])]);
   },
 
   async enrollCourse(userId: string, courseId: string) {
