@@ -130,6 +130,21 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
       // Upload thumbnail
       const thumbnailUrl = await uploadThumbnail();
 
+      // Fetch instructor bio
+      let instructorBio = '';
+      if (user?.$id) {
+        try {
+          const userDocs = await dbService.listDocuments(COLLECTIONS.USERS, [
+            Query.equal('userId', [user.$id])
+          ]);
+          if (userDocs.documents.length > 0) {
+            instructorBio = (userDocs.documents[0] as any).bio || '';
+          }
+        } catch (err) {
+          console.warn('Could not fetch instructor bio:', err);
+        }
+      }
+
       const courseData = {
         title: formData.title,
         description: formData.description,
@@ -140,6 +155,7 @@ export default function CourseForm({ courseId, initialData, onSuccess }: CourseF
         thumbnail: thumbnailUrl,
         instructorId: user?.$id || '',
         instructorName: user?.name || 'Unknown',
+        instructorBio: instructorBio,
         rating: 0,
         students: 0,
       };

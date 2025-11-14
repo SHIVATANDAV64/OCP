@@ -23,6 +23,7 @@ export default function Auth() {
     email: '',
     password: '',
     role: 'student',
+    bio: '',
   });
 
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function Auth() {
               name: signupData.name,
               email: signupData.email,
               role: signupData.role,
+              bio: signupData.role === 'instructor' ? signupData.bio : '',
               enrolledCourses: [],
             });
           }
@@ -228,6 +230,21 @@ export default function Auth() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {signupData.role === 'instructor' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-bio">Professional Bio</Label>
+                      <textarea
+                        id="signup-bio"
+                        placeholder="Tell students about your expertise and experience..."
+                        value={signupData.bio}
+                        onChange={(e) => setSignupData({ ...signupData, bio: e.target.value })}
+                        maxLength={500}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm resize-none"
+                        rows={4}
+                      />
+                      <p className="text-xs text-gray-500">{signupData.bio.length}/500 characters</p>
+                    </div>
+                  )}
                   {error && <p className="text-sm text-red-600">{error}</p>}
                   <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800" disabled={isLoading}>
                     {isLoading ? 'Creating account...' : 'Sign Up'}

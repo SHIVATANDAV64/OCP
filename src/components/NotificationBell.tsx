@@ -101,26 +101,42 @@ export default function NotificationBell() {
             No notifications yet
           </div>
         ) : (
-          notifications.slice(0, 10).map((notification) => (
-            <DropdownMenuItem
-              key={notification.$id}
-              onClick={() => handleNotificationClick(notification)}
-              className={`px-4 py-3 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
-            >
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-medium text-sm">{notification.title}</p>
-                  {!notification.read && (
-                    <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
-                  )}
+          <>
+            {notifications.slice(0, 10).map((notification) => (
+              <DropdownMenuItem
+                key={notification.$id}
+                onClick={() => handleNotificationClick(notification)}
+                className={`px-4 py-3 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-sm">{notification.title}</p>
+                    {!notification.read && (
+                      <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {new Date(notification.createdAt).toLocaleString()}
-                </p>
+              </DropdownMenuItem>
+            ))}
+            {notifications.length > 10 && (
+              <div className="px-4 py-2 border-t">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-300 text-sm"
+                  onClick={() => {
+                    navigate('/notifications');
+                    setOpen(false);
+                  }}
+                >
+                  Show More
+                </Button>
               </div>
-            </DropdownMenuItem>
-          ))
+            )}
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

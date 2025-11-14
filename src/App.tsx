@@ -15,6 +15,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import Certificate from '@/pages/Certificate';
 import Profile from '@/pages/Profile';
 import InstructorAnalytics from '@/pages/InstructorAnalytics';
+import Notifications from '@/pages/Notifications';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/certificate/:certificateId" element={<Certificate />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/instructor/analytics" element={<InstructorAnalytics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

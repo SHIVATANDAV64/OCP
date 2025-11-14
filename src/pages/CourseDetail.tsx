@@ -16,6 +16,8 @@ interface Course {
   id: string;
   title: string;
   instructor: string;
+  instructorId: string;
+  instructorBio: string;
   students: number;
   rating: number;
   reviews: number;
@@ -102,6 +104,8 @@ export default function CourseDetail() {
         id: id,
         title: (courseData as any).title || 'Untitled Course',
         instructor: (courseData as any).instructorName || 'Instructor',
+        instructorId: (courseData as any).instructorId || '',
+        instructorBio: (courseData as any).instructorBio || '',
         students: (courseData as any).students || 0,
         rating: (courseData as any).rating || 0,
         reviews: (courseData as any).reviews || 0,
@@ -303,17 +307,16 @@ export default function CourseDetail() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700 mb-4">
-                      Experienced web developer with over 10 years of industry experience. Passionate about teaching and
-                      helping students achieve their goals.
+                      {course.instructorBio || 'Experienced instructor with a passion for teaching and helping students achieve their goals.'}
                     </p>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <div className="font-semibold text-gray-900">Students</div>
-                        <div className="text-gray-600">15,234</div>
+                        <div className="text-gray-600">{course.students}</div>
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900">Courses</div>
-                        <div className="text-gray-600">12</div>
+                        <div className="text-gray-600">-</div>
                       </div>
                     </div>
                   </CardContent>
