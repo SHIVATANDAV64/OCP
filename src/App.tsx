@@ -17,6 +17,7 @@ import Profile from '@/pages/Profile';
 import InstructorAnalytics from '@/pages/InstructorAnalytics';
 import Notifications from '@/pages/Notifications';
 import NotFound from './pages/NotFound';
+import '@/styles/hero.css';
 
 const queryClient = new QueryClient();
 
