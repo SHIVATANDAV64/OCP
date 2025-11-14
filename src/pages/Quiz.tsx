@@ -38,6 +38,10 @@ export default function Quiz() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     loadQuiz();
   }, [courseId]);
 
@@ -191,7 +195,7 @@ export default function Quiz() {
     const passed = percentage >= 70;
 
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="max-w-2xl w-full bg-white border-gray-200">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
@@ -251,7 +255,7 @@ export default function Quiz() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md w-full bg-white border-gray-200">
           <CardContent className="p-12 text-center">
             <p className="text-gray-600">Loading quiz...</p>
@@ -263,7 +267,7 @@ export default function Quiz() {
 
   if (error || !quiz) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md w-full bg-white border-gray-200">
           <CardHeader>
             <CardTitle className="text-red-600">Error</CardTitle>
@@ -283,7 +287,7 @@ export default function Quiz() {
   const progress = ((currentQuestion + 1) / quiz.questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{quiz.courseTitle} - Quiz</h1>

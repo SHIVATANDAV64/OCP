@@ -7,6 +7,11 @@ export default {
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
+    fontFamily: {
+      nunito: ['Nunito', 'sans-serif'],
+      'exo-2': ['Exo 2', 'sans-serif'],
+      quantico: ['Quantico', 'sans-serif'],
+    },
     container: {
       center: true,
       padding: "2rem",
@@ -15,6 +20,9 @@ export default {
       },
     },
     extend: {
+      aspectRatio: {
+        'a4': '1.414',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

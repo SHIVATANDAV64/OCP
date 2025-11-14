@@ -137,20 +137,20 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
   };
 
   return (
-    <Card className="overflow-hidden bg-black">
-      <div className="relative aspect-video">
+    <Card className="overflow-hidden bg-[#2C2416] border-[#D4A574]/30">
+      <div className="relative aspect-video max-w-4xl mx-auto">
         {error ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#2C2416]">
             <div className="text-center">
-              <p className="text-white mb-4">{error}</p>
-              <p className="text-gray-400 text-sm break-all px-4">URL: {url}</p>
+              <p className="text-[#D4A574] mb-4">{error}</p>
+              <p className="text-[#8B7355] text-sm break-all px-4">URL: {url}</p>
             </div>
           </div>
         ) : (
           <>
             <video
               ref={videoRef}
-              className="w-full h-full"
+              className="w-full h-full object-cover rounded-lg"
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
               onEnded={() => {
@@ -167,7 +167,7 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
         )}
         
         {/* Custom Controls Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#2C2416]/90 to-transparent p-6">
           {/* Progress Bar */}
           <div className="mb-4">
             <Slider
@@ -175,9 +175,9 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
               onValueChange={handleSeek}
               max={100}
               step={0.1}
-              className="cursor-pointer"
+              className="cursor-pointer [&_[role=slider]]:bg-[#D4A574] [&_[role=slider]]:border-[#D4A574] [&_[role=slider]]:hover:bg-[#8B7355] [&_[role=slider]]:hover:border-[#8B7355] [&_[data-radix-slider-track]]:bg-[#F5E8DE]/30 [&_[data-radix-slider-range]]:bg-[#D4A574]"
             />
-            <div className="flex justify-between text-xs text-white mt-1">
+            <div className="flex justify-between text-xs text-[#D4A574] mt-2">
               <span>{formatTime(played * duration)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -190,17 +190,17 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
                 onClick={handlePlayPause}
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20"
+                className="text-[#D4A574] hover:bg-[#D4A574]/20 hover:text-[#2C2416] rounded-full"
               >
                 {playing ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Button
                   onClick={handleMuteToggle}
                   variant="ghost"
                   size="icon"
-                  className="text-white hover:bg-white/20"
+                  className="text-[#D4A574] hover:bg-[#D4A574]/20 hover:text-[#2C2416] rounded-full"
                 >
                   {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </Button>
@@ -210,6 +210,7 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
                     onValueChange={handleVolumeChange}
                     max={100}
                     step={1}
+                    className="[&_[role=slider]]:bg-[#D4A574] [&_[role=slider]]:border-[#D4A574] [&_[role=slider]]:hover:bg-[#8B7355] [&_[role=slider]]:hover:border-[#8B7355] [&_[data-radix-slider-track]]:bg-[#F5E8DE]/30 [&_[data-radix-slider-range]]:bg-[#D4A574]"
                   />
                 </div>
               </div>
@@ -219,7 +220,7 @@ export default function VideoPlayer({ url, onProgress, onComplete, initialProgre
               onClick={handleFullscreen}
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20"
+              className="text-[#D4A574] hover:bg-[#D4A574]/20 hover:text-[#2C2416] rounded-full"
             >
               <Maximize className="h-5 w-5" />
             </Button>

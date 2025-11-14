@@ -32,6 +32,10 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -116,7 +120,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">

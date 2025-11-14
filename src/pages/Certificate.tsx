@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,13 +26,12 @@ export default function Certificate() {
   const certificateRef = useRef<HTMLDivElement>(null);
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
-  
 
   useEffect(() => {
-    loadCertificate();
-  }, [certificateId]);
+    window.scrollTo(0, 0);
+  }, []);
 
-  const loadCertificate = async () => {
+  const loadCertificate = useCallback(async () => {
     try {
       if (!certificateId) {
         toast.error('Invalid certificate ID');
@@ -40,21 +39,21 @@ export default function Certificate() {
         return;
       }
       
-      // Load from Appwrite
       const cert = await dbService.getDocument(COLLECTIONS.CERTIFICATES, certificateId);
+      const certData = cert as Record<string, unknown>;
       setCertificate({
         id: cert.$id,
-        userId: cert.userId,
-        courseId: cert.courseId,
-        courseName: cert.courseName,
-        userName: cert.userName,
-        completedAt: new Date(cert.completedAt).toLocaleDateString('en-US', {
+        userId: certData.userId as string,
+        courseId: certData.courseId as string,
+        courseName: certData.courseName as string,
+        userName: certData.userName as string,
+        completedAt: new Date(certData.completedAt as string).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         }),
-        instructorName: cert.instructorName,
-        certificateNumber: cert.certificateNumber,
+        instructorName: certData.instructorName as string,
+        certificateNumber: certData.certificateNumber as string,
       });
     } catch (error) {
       console.error('Error loading certificate:', error);
@@ -62,7 +61,11 @@ export default function Certificate() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [certificateId]);
+
+  useEffect(() => {
+    loadCertificate();
+  }, [loadCertificate]);
 
   const handleDownload = async () => {
     if (!certificateRef.current) return;
@@ -117,7 +120,7 @@ export default function Certificate() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Loading certificate...</p>
       </div>
     );
@@ -125,7 +128,7 @@ export default function Certificate() {
 
   if (!certificate) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md mx-auto text-center p-6">
           <p className="text-gray-600 mb-4">Certificate not found</p>
           <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
@@ -135,7 +138,7 @@ export default function Certificate() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <Button variant="ghost" onClick={() => navigate('/dashboard')} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -156,8 +159,7 @@ export default function Certificate() {
         {/* Certificate Design */}
         <div
           ref={certificateRef}
-          className="bg-white p-16 border-8 border-double border-gray-800 shadow-2xl"
-          style={{ aspectRatio: '1.414/1' }}
+          className="bg-white p-16 border-8 border-double border-gray-800 shadow-2xl aspect-a4"
         >
           {/* Decorative corners */}
           <div className="relative h-full flex flex-col items-center justify-between">

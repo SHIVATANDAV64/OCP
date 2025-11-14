@@ -29,10 +29,10 @@ export const stripeService = {
     try {
       // Call Appwrite Function for creating checkout session
       const { functionsService } = await import('@/services/functionsService');
-      const { account } = await import('./appwrite');
       
-      // Get current user
-      const user = await account.get();
+      // Get current user - import only what we need
+      const { account: accountInstance } = await import('./appwrite');
+      const user = await accountInstance.get();
       
       const result = await functionsService.createCheckoutSession({
         courseId,

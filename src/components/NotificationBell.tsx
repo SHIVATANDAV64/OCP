@@ -122,20 +122,18 @@ export default function NotificationBell() {
                 </div>
               </DropdownMenuItem>
             ))}
-            {notifications.length > 10 && (
-              <div className="px-4 py-2 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full border-gray-300 text-sm"
-                  onClick={() => {
-                    navigate('/notifications');
-                    setOpen(false);
-                  }}
-                >
-                  Show More
-                </Button>
-              </div>
-            )}
+            <div className="px-4 py-2 border-t">
+              <Button 
+                variant="outline" 
+                className="w-full border-gray-300 text-sm"
+                onClick={() => {
+                  navigate('/notifications');
+                  setOpen(false);
+                }}
+              >
+                View More
+              </Button>
+            </div>
           </>
         )}
       </DropdownMenuContent>

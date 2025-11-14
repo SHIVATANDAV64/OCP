@@ -39,6 +39,10 @@ export default function Profile() {
     }
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const loadUserData = async () => {
     if (!user) return;
     try {
@@ -152,30 +156,30 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-4xl font-bold text-gray-900">My Profile</h1>
             <div className="flex items-center gap-2">
               {userRole === 'admin' && (
-                <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                <Badge className="bg-[#2C2416] text-white hover:bg-[#1a1410] flex items-center gap-1">
                   <Shield className="h-3 w-3" />
                   Admin
                 </Badge>
               )}
               {userRole === 'instructor' && (
-                <Badge className="bg-blue-100 text-blue-800">Instructor</Badge>
+                <Badge className="bg-[#D4A574] text-[#2C2416] hover:bg-[#8B7355] hover:text-white">Instructor</Badge>
               )}
               {userRole === 'student' && (
-                <Badge className="bg-green-100 text-green-800">Student</Badge>
+                <Badge className="bg-[#F5E8DE] text-[#2C2416] hover:bg-[#E8D5C4] border border-[#D4A574]/30">Student</Badge>
               )}
             </div>
           </div>
@@ -263,16 +267,16 @@ export default function Profile() {
                     <div className="mt-1 p-3 bg-gray-50 border border-gray-300 rounded-md flex items-center justify-between">
                       <span className="text-gray-700 capitalize font-medium">{userRole}</span>
                       {userRole === 'admin' && (
-                        <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                        <Badge className="bg-[#2C2416] text-white hover:bg-[#1a1410] flex items-center gap-1">
                           <Shield className="h-3 w-3" />
                           Admin
                         </Badge>
                       )}
                       {userRole === 'instructor' && (
-                        <Badge className="bg-blue-100 text-blue-800">Instructor</Badge>
+                        <Badge className="bg-[#D4A574] text-[#2C2416] hover:bg-[#8B7355] hover:text-white">Instructor</Badge>
                       )}
                       {userRole === 'student' && (
-                        <Badge className="bg-green-100 text-green-800">Student</Badge>
+                        <Badge className="bg-[#F5E8DE] text-[#2C2416] hover:bg-[#E8D5C4] border border-[#D4A574]/30">Student</Badge>
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Your account role cannot be changed directly. Contact support if needed.</p>

@@ -18,6 +18,10 @@ export default function Notifications() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const itemsPerPage = 15;
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const loadNotifications = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -143,7 +147,7 @@ export default function Notifications() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">

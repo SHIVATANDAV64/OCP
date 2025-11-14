@@ -1,22 +1,108 @@
 /* Hero and Index Page Animations */
 
-/* Decorative pattern class */
+/* Paper texture and noise patterns */
+
+/* Soft paper texture - main background */
+.paper-texture {
+  position: relative;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(139, 115, 85, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 60% 40%, rgba(212, 165, 116, 0.02) 2px, transparent 2px),
+    radial-gradient(circle at 80% 10%, rgba(92, 64, 51, 0.02) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 40% 60%, rgba(139, 115, 85, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 90% 70%, rgba(212, 165, 116, 0.02) 1.5px, transparent 1.5px);
+  background-size: 50px 50px, 80px 80px, 100px 100px, 70px 70px, 120px 120px;
+  background-position: 0 0, 10px 10px, 20px 20px, 30px 30px, 40px 40px;
+  will-change: auto;
+}
+
+/* Watercolor-like soft noise */
+.watercolor-noise {
+  background: 
+    radial-gradient(ellipse at 30% 50%, rgba(212, 165, 116, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 30%, rgba(139, 115, 85, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 70%, rgba(92, 64, 51, 0.015) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(212, 165, 116, 0.015) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 20%, rgba(139, 115, 85, 0.015) 0%, transparent 50%);
+  will-change: auto;
+}
+
+/* Fine grain texture - like drawing paper */
+.drawing-paper-texture {
+  background-image: 
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/></filter><rect width="200" height="200" fill="%23F5F2ED" filter="url(%23noise)" opacity="0.1"/></svg>');
+  background-size: 100px 100px;
+  will-change: auto;
+}
+
+/* Subtle cloth texture */
+.cloth-texture {
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.02) 2px, rgba(139, 115, 85, 0.02) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 115, 85, 0.015) 2px, rgba(139, 115, 85, 0.015) 4px);
+  background-size: 4px 4px, 4px 4px;
+  will-change: auto;
+}
+
+/* Decorative pattern for final CTA - softer version */
 .decorative-pattern {
   background-image:
-    repeating-linear-gradient(45deg, #D4A574 0px, #D4A574 2px, transparent 2px, transparent 35px),
-    repeating-linear-gradient(-45deg, #D4A574 0px, #D4A574 2px, transparent 2px, transparent 35px);
+    radial-gradient(circle at 10% 20%, rgba(212, 165, 116, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 30% 80%, rgba(139, 115, 85, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 60% 40%, rgba(212, 165, 116, 0.04) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 80% 60%, rgba(139, 115, 85, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(92, 64, 51, 0.025) 2px, transparent 2px);
+  background-size: 80px 80px, 120px 120px, 100px 100px, 150px 150px, 200px 200px;
+  background-position: 0 0, 20px 20px, 40px 40px, 60px 60px, 80px 80px;
+  will-change: auto;
 }
 
-.textile-pattern {
+/* Golden ratio grid overlay - optimized for performance */
+.golden-grid-overlay {
   background-image:
-    repeating-linear-gradient(0deg, #8B7355 0px, #8B7355 1px, transparent 1px, transparent 20px),
-    repeating-linear-gradient(90deg, #8B7355 0px, #8B7355 1px, transparent 1px, transparent 20px);
+    linear-gradient(90deg, rgba(212, 165, 116, 0.14) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(212, 165, 116, 0.08) 1px, transparent 1px);
+  background-size: 140px 140px;
+  will-change: auto;
+  contain: layout style paint;
 }
 
-.mandala-pattern {
+/* Page shell gradient for secondary pages */
+.page-surface-bg {
   background-image:
-    repeating-linear-gradient(0deg, #8B7355 0px, #8B7355 1px, transparent 1px, transparent 20px),
-    repeating-linear-gradient(90deg, #8B7355 0px, #8B7355 1px, transparent 1px, transparent 20px);
+    radial-gradient(circle at 5% 15%, rgba(204, 150, 101, 0.08), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(139, 115, 85, 0.06), transparent 55%),
+    radial-gradient(circle at 50% 85%, rgba(92, 64, 51, 0.04), transparent 60%),
+    linear-gradient(180deg, #fdfbf7 0%, #faf3ea 45%, #f7ecde 100%);
+  background-size: cover;
+  will-change: auto;
+}
+
+.page-surface-fade {
+  background: linear-gradient(180deg, rgba(253, 251, 247, 0.9), rgba(250, 243, 234, 0.8), rgba(245, 232, 222, 0.95));
+  will-change: auto;
+}
+
+/* Shared hover treatment for interactive elements - GPU accelerated */
+.tint-hover {
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.3s ease;
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.tint-hover:hover {
+  transform: translateY(-4px) translateZ(0);
+  box-shadow: 0 14px 35px rgba(44, 36, 22, 0.16);
+}
+
+.footer-grid-mask {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08) 2px, transparent 2px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 2px, transparent 2px),
+    radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.04) 2px, transparent 2px);
+  background-size: 140px 140px, 200px 200px, 160px 160px;
+  will-change: auto;
 }
 
 /* Smooth scroll behavior */
@@ -34,29 +120,36 @@ html {
   }
 }
 
-/* Float animation for decorative elements */
+/* Float animation for decorative elements - optimized */
 @keyframes float {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0px) translateZ(0);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-20px) translateZ(0);
   }
+}
+
+.floating-soft {
+  animation: float 10s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Pulse animation for CTA */
 @keyframes pulse-scale {
   0%, 100% {
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.05) translateZ(0);
   }
 }
 
 /* Enhanced shadow for cards */
 .card-shadow-hover {
   transition: box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: box-shadow;
 }
 
 /* Gradient text effect */
@@ -65,11 +158,13 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  will-change: auto;
 }
 
 /* Scroll indicator */
 .scroll-indicator {
   animation: bounce 2s infinite;
+  will-change: transform;
 }
 
 @keyframes bounce {
@@ -79,11 +174,6 @@ html {
   50% {
     transform: translateY(-10px);
   }
-}
-
-/* Smooth transitions */
-* {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hover effect for interactive elements */
@@ -101,6 +191,7 @@ html {
   height: 100%;
   background: rgba(255, 255, 255, 0.2);
   transition: left 0.3s ease;
+  will-change: left;
 }
 
 .interactive-hover:hover::before {
@@ -113,6 +204,7 @@ html {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(212, 165, 116, 0.2);
+  will-change: auto;
 }
 
 /* Japanese-inspired design tokens */
@@ -151,11 +243,18 @@ html {
   --shadow-xl: 0 25px 50px rgba(139, 115, 85, 0.2);
 }
 
+/* Reduce repaints - use GPU acceleration */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    will-change: auto !important;
   }
 }

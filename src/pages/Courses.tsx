@@ -19,6 +19,10 @@ export default function Courses() {
   const [selectedPrice, setSelectedPrice] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('popular');
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const categories = ['Development', 'Design', 'Business', 'Data Science', 'Marketing', 'IT & Software'];
   const levels = ['Beginner', 'Intermediate', 'Advanced'];
   const priceRanges = [
@@ -106,7 +110,7 @@ export default function Courses() {
   const hasActiveFilters = selectedCategory !== 'all' || selectedLevel !== 'all' || selectedPrice !== 'all' || searchQuery !== '';
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9]">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-12">

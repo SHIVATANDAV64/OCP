@@ -32,6 +32,10 @@ export default function LessonView() {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     loadLessons();
     loadProgress();
   }, [courseId]);
@@ -200,14 +204,14 @@ export default function LessonView() {
 
   if (!currentLesson) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Lesson not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9]">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}

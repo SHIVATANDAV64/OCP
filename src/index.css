@@ -3,6 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+  .nunito {
+    font-family: "Nunito", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+
+  .exo-2 {
+    font-family: "Exo 2", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+
+  .quantico-regular {
+    font-family: "Quantico", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  .quantico-bold {
+    font-family: "Quantico", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  .quantico-regular-italic {
+    font-family: "Quantico", sans-serif;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .quantico-bold-italic {
+    font-family: "Quantico", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+  }
+}
+
+@layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -97,5 +135,20 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Nunito", sans-serif;
+    font-optical-sizing: auto;
+    background-color: #faf8f3;
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(212, 165, 116, 0.08), transparent 45%),
+      radial-gradient(circle at 80% 0%, rgba(139, 115, 85, 0.06), transparent 50%),
+      linear-gradient(180deg, #fcf9f4 0%, #f9f1e8 48%, #f5e8de 100%);
+    background-attachment: fixed;
+    color: #2c2416;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Quantico", sans-serif;
+    font-weight: 700;
+    font-style: normal;
   }
 }

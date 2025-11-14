@@ -6,7 +6,6 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
-    // Map '@/...' to files directly under the src folder (not src/src)
     "paths": {
       "@/*": ["./*"]
     },
@@ -15,6 +14,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "noUnusedLocals": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0"
   }
 }

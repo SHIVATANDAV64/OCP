@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { stripeService } from '@/lib/stripe';
-import functionsService from '@/services/functionsService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -18,6 +17,10 @@ export default function PaymentSuccess() {
 
   const sessionId = searchParams.get('session_id');
   const courseId = searchParams.get('course_id');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     verifyPayment();
@@ -41,6 +44,7 @@ export default function PaymentSuccess() {
         // Payment verified, now enroll the user
         if (user && courseId) {
           try {
+            const { functionsService } = await import('@/services/functionsService');
             const enrollResult = await functionsService.enrollCourse({
               userId: user.$id,
               courseId: courseId,
@@ -68,7 +72,7 @@ export default function PaymentSuccess() {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="max-w-md w-full bg-white border-gray-200">
           <CardContent className="p-12 text-center">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-gray-600" />
@@ -82,7 +86,7 @@ export default function PaymentSuccess() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="max-w-md w-full bg-white border-gray-200">
           <CardHeader>
             <CardTitle className="text-red-600">Payment Failed</CardTitle>
@@ -99,7 +103,7 @@ export default function PaymentSuccess() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="max-w-md w-full bg-white border-gray-200">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">

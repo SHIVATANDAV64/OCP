@@ -4,12 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlayCircle, Clock, Users, Award, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { dbService, COLLECTIONS, Query } from '@/lib/appwrite';
 import { useAuth } from '@/contexts/AuthContext';
 import PaymentCheckout from '@/components/PaymentCheckout';
 import courseService from '@/services/courseService';
 import CourseReviews from '@/components/CourseReviews';
+
+interface Lesson {
+  id: string;
+  title: string;
+  duration: string;
+  videoUrl: string;
+  completed: boolean;
+}
+
+interface CurriculumSection {
+  section: string;
+  lessons: Lesson[];
+}
 
 interface Course {
   $id: string;
@@ -28,7 +41,7 @@ interface Course {
   image: string;
   description: string;
   whatYouLearn: string[];
-  curriculum: any[];
+  curriculum: CurriculumSection[];
 }
 
 export default function CourseDetail() {
@@ -41,6 +54,94 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const checkEnrollment = useCallback(async () => {
+    if (!user || !id) return;
+    try {
+      const enrollmentsResponse = await dbService.listDocuments(COLLECTIONS.ENROLLMENTS, [
+        Query.equal('userId', [user.$id]),
+        Query.equal('courseId', [id])
+      ]);
+      setIsEnrolled(enrollmentsResponse.documents.length > 0);
+    } catch (error) {
+      console.error('Error checking enrollment:', error);
+    }
+  }, [user, id]);
+
+  const loadCourse = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const courseData = await dbService.getDocument(COLLECTIONS.COURSES, id);
+      const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', [id])]);
+      
+      let completedLessonIds: string[] = [];
+      if (user) {
+        try {
+          const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
+            Query.equal('userId', [user.$id]),
+            Query.equal('courseId', [id])
+          ]);
+          if (progressResponse.documents.length > 0) {
+            const progressDoc = progressResponse.documents[0] as Record<string, unknown>;
+            completedLessonIds = (progressDoc.completedLessons as string[]) || [];
+          }
+        } catch (err) {
+          console.error('Error loading progress:', err);
+        }
+      }
+      
+      const curriculum: CurriculumSection[] = [];
+      const sections = new Map<string, Lesson[]>();
+      
+      for (const lesson of lessonsResponse.documents as Record<string, unknown>[]) {
+        const sectionName = lesson.section as string;
+        if (!sections.has(sectionName)) {
+          sections.set(sectionName, []);
+        }
+        sections.get(sectionName)!.push({
+          id: (lesson.id as string) || (lesson.$id as string),
+          title: lesson.title as string,
+          duration: (lesson.duration as string) || '0:00',
+          videoUrl: (lesson.videoUrl as string) || '',
+          completed: completedLessonIds.includes((lesson.id as string) || (lesson.$id as string)),
+        });
+      }
+      
+      sections.forEach((lessons, section) => {
+        curriculum.push({ section, lessons });
+      });
+
+      const courseRecord = courseData as Record<string, unknown>;
+      setCourse({
+        $id: courseData.$id,
+        id: id,
+        title: (courseRecord.title as string) || 'Untitled Course',
+        instructor: (courseRecord.instructorName as string) || 'Instructor',
+        instructorId: (courseRecord.instructorId as string) || '',
+        instructorBio: (courseRecord.instructorBio as string) || '',
+        students: (courseRecord.students as number) || 0,
+        rating: (courseRecord.rating as number) || 0,
+        reviews: (courseRecord.reviews as number) || 0,
+        price: (courseRecord.price as number) || 0,
+        category: (courseRecord.category as string) || 'Development',
+        duration: (courseRecord.duration as string) || '0 hours',
+        level: (courseRecord.level as string) || 'Beginner',
+        image: (courseRecord.thumbnail as string) || 'https://via.placeholder.com/800x400',
+        description: (courseRecord.description as string) || 'No description available',
+        whatYouLearn: (courseRecord.whatYouLearn as string[]) || [],
+        curriculum: curriculum,
+      });
+    } catch (error) {
+      console.error('Error loading course:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, user]);
+
+  useEffect(() => {
     const init = async () => {
       if (user && id) {
         await checkEnrollment();
@@ -50,94 +151,7 @@ export default function CourseDetail() {
       }
     };
     init();
-  }, [user, id]);
-
-  const loadCourse = async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      // Load course from Appwrite
-      const courseData = await dbService.getDocument(COLLECTIONS.COURSES, id);
-      
-      // Load curriculum (lessons) for this course
-      const lessonsResponse = await dbService.listDocuments(COLLECTIONS.LESSONS, [Query.equal('courseId', [id])]);
-      
-      // Fetch real progress for the user if enrolled
-      let completedLessonIds: string[] = [];
-      if (user) {
-        try {
-          const progressResponse = await dbService.listDocuments(COLLECTIONS.PROGRESS, [
-            Query.equal('userId', [user.$id]),
-            Query.equal('courseId', [id])
-          ]);
-          if (progressResponse.documents.length > 0) {
-            completedLessonIds = (progressResponse.documents[0] as any).completedLessons || [];
-          }
-        } catch (err) {
-          console.error('Error loading progress:', err);
-        }
-      }
-      
-      // Group lessons by section
-      const curriculum = [];
-      const sections = new Map();
-      
-      for (const lesson of (lessonsResponse.documents as any[])) {
-        if (!sections.has(lesson.section)) {
-          sections.set(lesson.section, []);
-        }
-        sections.get(lesson.section).push({
-          id: lesson.id || lesson.$id,
-          title: lesson.title,
-          duration: lesson.duration || '0:00',
-          videoUrl: lesson.videoUrl || '',
-          completed: completedLessonIds.includes(lesson.id || lesson.$id),
-        });
-      }
-      
-      sections.forEach((lessons, section) => {
-        curriculum.push({ section, lessons });
-      });
-
-      setCourse({
-        $id: courseData.$id,
-        id: id,
-        title: (courseData as any).title || 'Untitled Course',
-        instructor: (courseData as any).instructorName || 'Instructor',
-        instructorId: (courseData as any).instructorId || '',
-        instructorBio: (courseData as any).instructorBio || '',
-        students: (courseData as any).students || 0,
-        rating: (courseData as any).rating || 0,
-        reviews: (courseData as any).reviews || 0,
-        price: (courseData as any).price || 0,
-        category: (courseData as any).category || 'Development',
-        duration: (courseData as any).duration || '0 hours',
-        level: (courseData as any).level || 'Beginner',
-        image: (courseData as any).thumbnail || 'https://via.placeholder.com/800x400',
-        description: (courseData as any).description || 'No description available',
-        whatYouLearn: (courseData as any).whatYouLearn || [],
-        curriculum: curriculum,
-      });
-    } catch (error) {
-      console.error('Error loading course:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkEnrollment = async () => {
-    if (!user || !id) return;
-    try {
-      // Check if user is enrolled in this course
-      const enrollmentsResponse = await dbService.listDocuments(COLLECTIONS.ENROLLMENTS, [
-        Query.equal('userId', [user.$id]),
-        Query.equal('courseId', [id])
-      ]);
-      setIsEnrolled(enrollmentsResponse.documents.length > 0);
-    } catch (error) {
-      console.error('Error checking enrollment:', error);
-    }
-  };
+  }, [user, id, checkEnrollment, loadCourse]);
 
   const handleEnroll = () => {
     if (!user) {
@@ -182,7 +196,7 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Loading course...</p>
       </div>
     );
@@ -190,7 +204,7 @@ export default function CourseDetail() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-[#FDFCF9] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md mx-auto text-center p-6">
           <p className="text-gray-600 mb-4">Course not found</p>
           <Button onClick={() => navigate('/courses')}>Browse Courses</Button>
@@ -202,7 +216,7 @@ export default function CourseDetail() {
   const progress = isEnrolled ? 33 : 0;
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9]">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
@@ -276,7 +290,7 @@ export default function CourseDetail() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {section.lessons.map((lesson) => (
+                          {section.lessons.map((lesson: Lesson) => (
                             <div
                               key={lesson.id}
                               className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer"

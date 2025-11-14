@@ -59,6 +59,10 @@ export default function Dashboard() {
   const [instructorStats, setInstructorStats] = useState({ totalCourses: 0, totalStudents: 0, totalRevenue: 0, avgRating: 0 });
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const loadUserRole = useCallback(async () => {
     if (!user) return;
     try {
@@ -241,7 +245,7 @@ export default function Dashboard() {
   }, [user, userRole, loadStudentCourses, loadStudentStats, loadInstructorCourses, loadInstructorStats, loadAdminData]);
 
   return (
-    <div className="min-h-screen bg-[#FDFCF9]">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8">
