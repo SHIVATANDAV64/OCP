@@ -33,7 +33,8 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/@stripe')) {
             return 'vendor-stripe';
           }
-          if (id.includes('node_modules/react')) {
+          // Keep React and React-DOM together, don't split them
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'vendor-react';
           }
           if (id.includes('node_modules/@radix-ui')) {
